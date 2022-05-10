@@ -6,11 +6,14 @@
 Engine_mpcgrain : CroneEngine {
 
   classvar maxNumVoices = 8;
+  
   var padGroup;
   var padList;
   var modGroup;
   var modList;
-
+  var recGroup;
+  var recList;
+  var recparams;
   var padparams;
   var modparams;
 	
@@ -50,6 +53,8 @@ Engine_mpcgrain : CroneEngine {
     ~delayleftmod = Bus.audio(context.server,8);
     ~delayrightmod = Bus.audio(context.server,8);
 
+    recGroup = Group.new(context.xg);
+    recList = List.new();
     padGroup = Group.new(context.xg);
     padList = List.new();
     modGroup = Group.new(context.xg);
@@ -58,7 +63,7 @@ Engine_mpcgrain : CroneEngine {
 
 		// Synths
 		
-	  SynthDef(\record, { arg pos=0, step=1, bpm = 120, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
+	  SynthDef(\record, { arg rpos=0, rstep=1, rbpm = 120, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
     	var input, runa, trigger;
     	input = SoundIn.ar(0)*10000;
     	runa = Select(loop, [LFPulse.ar(1/((240/bpm)*(1/step))), run]);
@@ -126,6 +131,25 @@ Engine_mpcgrain : CroneEngine {
 
 		// Commands
 		
+		recparams = Dictionary.newFrom([
+		  \rpos, 0, 
+		  \rstep, 1, 
+		  \rbpm, 120, 
+		  \rlvl, 1, 
+		  \plvl, 0, 
+		  \run, 1, 
+		  \loop, 1, 
+		  \mode, 1, 
+		  \da, 2;
+		]);
+
+		recparams.keysDo({ arg key;
+			this.addCommand(key, "f", { arg msg;
+				recparams[key] = msg[1];
+				recGroup.set(key, msg[1]);
+			});
+		});
+		
 		padparams = Dictionary.newFrom([
 			\gate, 0,
 			\vel, 0,
@@ -148,6 +172,13 @@ Engine_mpcgrain : CroneEngine {
       \dell, 0.0127, 
       \drywet, 0;
 		]);
+		
+		padparams.keysDo({ arg key;
+			this.addCommand(key, "f", { arg msg;
+				padparams[key] = msg[1];
+				padGroup.set(key, msg[1]);
+			});
+		});
 		
 		modparams = Dictionary.newFrom([
 			\mgate, 0,
@@ -174,13 +205,6 @@ Engine_mpcgrain : CroneEngine {
 	    \dellmod, 0, 
 	    \delrmod, 0;
 		]);
-		
-		padparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				padparams[key] = msg[1];
-				padGroup.set(key, msg[1]);
-			});
-		});
 		
 		modparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
