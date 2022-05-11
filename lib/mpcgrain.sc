@@ -21,6 +21,9 @@ Engine_mpcgrain : CroneEngine {
   var buffread;
   var diskwrite;
   var diskread;
+  
+  var bpm=120;
+  var step=1;
 	
   *new { arg context, doneCallback;
 	^super.new(context, doneCallback);
@@ -63,16 +66,16 @@ Engine_mpcgrain : CroneEngine {
 
 		// Synths
 		
-	  SynthDef(\record, { arg rpos=0, rstep=1, rbpm = 120, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
+	  SynthDef(\recorder, { arg rpos=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
     	var input, runa, trigger;
     	input = SoundIn.ar(0)*10000;
-    	runa = Select(loop, [LFPulse.ar(1/((240/bpm)*(1/step))), run]);
-    	trigger = Select(mode, [Impulse.ar(1/((240/bpm)*(1/step))), Impulse.ar(1/((240/bpm)*(8/step)))]);
-      RecordBuf.ar(input, buff, 48000*((240/bpm)*(1/step)*pos), rlvl, plvl, run*runa, loop, trigger, da);
+    	runa = Select(loop, [LFPulse.ar(1/((240/rbpm)*(1/rstep))), run]);
+    	trigger = Select(mode, [Impulse.ar(1/((240/rbpm)*(1/rstep))), Impulse.ar(1/((240/rbpm)*(8/rstep)))]);
+      RecordBuf.ar(input, buff, 48000*((240/rbpm)*(1/rstep)*rpos), rlvl, plvl, run*runa, loop, trigger, da);
     }).add;
     
     SynthDef(\lfosmod, {
-    	arg mpos=0, mstep=1, mbpm=120, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, lfoq=1, noiseq=0.5, mfiltcut=127,
+    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, lfoq=1, noiseq=0.5, mfiltcut=127,
 	      mastermod=0, pitchmod=0, durmod=0, trigfmod=0, posmod=0, filtmod=0, panmod=0, dellmod=0, delrmod=0;
     	var sig, env;
       env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
@@ -90,7 +93,7 @@ Engine_mpcgrain : CroneEngine {
    }).add;
    
    SynthDef(\grainsampler, {
-    	arg buf=buff, pos=0, bpm=120, step=1, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
+    	arg buf=buff, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
     	  rate=1, dur=0.5, transp=0, pan=0, trgsel=0, trgfrq=8,
       	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0;
     	var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
@@ -133,8 +136,6 @@ Engine_mpcgrain : CroneEngine {
 		
 		recparams = Dictionary.newFrom([
 		  \rpos, 0, 
-		  \rstep, 1, 
-		  \rbpm, 120, 
 		  \rlvl, 1, 
 		  \plvl, 0, 
 		  \run, 1, 
@@ -154,8 +155,6 @@ Engine_mpcgrain : CroneEngine {
 			\gate, 0,
 			\vel, 0,
 			\pos, 0,
-			\bpm, 0.1,
-			\step, 0,
 			\amp, 1,
 			\att, 0.1, 
 			\rel, 1, 
@@ -184,8 +183,6 @@ Engine_mpcgrain : CroneEngine {
 			\mgate, 0,
 			\mvel, 0,
 			\mpos, 0,
-			\mbpm, 0.1,
-			\mstep, 0,
 			\mamp, 1, 
 			\matt, 0, 
 			\mrel, 1, 
@@ -212,6 +209,32 @@ Engine_mpcgrain : CroneEngine {
 				modGroup.set(key, msg[1]);
 			});
 		});
+		
+		// bpm(value)
+		this.addCommand(\bpm, "f", { arg msg;
+			bpm = msg[1];
+			padGroup.set(\bpm, bpm);
+			modGroup.set(\mbpm, bpm);
+			recGroup.set(\rbpm, bpm);
+		});
+		
+		// step(value)
+		this.addCommand(\step, "f", { arg msg;
+			step = msg[1];
+			padGroup.set(\step, step);
+			recGroup.set(\rstep, step);
+		});
+		
+		// record(id, run)
+		this.addCommand(\noteOn, "if", { arg msg;
+			var id = msg[1], run = msg[2];
+			var rec;
+			context.server.makeBundle(nil, {
+		   	rec = (id: id, theSynth: Synth.new(defName: \recorder, args: [
+		  		\rpos, id, \run, run, \rbpm, bpm, \rstep, step]
+		  		++ recparams.getPairs, target: recGroup));
+		  });
+		});
 
 		// noteOn(id, note, vel)
 		this.addCommand(\noteOn, "iff", { arg msg;
@@ -219,10 +242,10 @@ Engine_mpcgrain : CroneEngine {
 			var mpc, mod;
 			context.server.makeBundle(nil, {
 		   	mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
-		  		\buf, buff, \gate, 1, \vel, vel]
+		  		\buf, buff, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
 		  		++ padparams.getPairs, target: padGroup));
 		  	mod = (id: id, theSynth: Synth.new(defName: \lfosmod, args: [
-		  		\gate, 1, \mvel, vel] ++ modparams.getPairs, target: modGroup));
+		  		\gate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup));
 		  });
 		});
 
