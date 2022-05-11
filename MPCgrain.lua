@@ -8,7 +8,6 @@
 
 engine.name = "mpcgrain"
 MPCgrain = include('MPCgrain/lib/mpcgrain_params')
-s = require 'sequins'
 
 local pattern_time = require "pattern_time"
 local in_device
@@ -23,15 +22,17 @@ local pad = {}
 local id_grp = 0
 local id_prm = 0
 local all_params = {}
-local grp_params = {"midi", "trck", "prog", "mods"}
+local grp_params = {"midi", "track", "sampl", "prog", "mods"}
 all_params[1] = {"in_device", "out_device"}
 all_params[2] = {"out_device"}
-all_params[3] = {"pos", "bpm", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
-all_params[4] = {"mpos", "mbpm", "mstep", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+all_params[3] = {"rpos", "rlvl", "plvl", "loop", "mode"}
+all_params[4] = {"pos", "bpm", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+all_params[5] = {"mpos", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
 
 -- MIDI input
 local function midi_event(data)
   
+  record_midi()
   msg = midi.to_msg(data)
   local channel_param = params:get("midi_channel")
 
@@ -47,14 +48,22 @@ local function midi_event(data)
       note = msg.note
       vel = msg.vel
       ch = msg.ch
-      engine.noteOff(pad[note], vel / 127)
+      for i=1,#pad do
+        if note == pad[i] then
+          engine.noteOff(i)
+        end
+      end
     
     -- Note on
     elseif msg.type == "note_on" then
       note = msg.note
       vel = msg.vel
       ch = msg.ch
-      engine.noteOn(pad[note], vel / 127)
+      for i=1,#pad do
+        if note == pad[i] then
+          engine.noteOn(i, note, vel / 127)
+        end
+      end
       
     -- Pitch bend
     elseif msg.type == "pitchbend" then
@@ -65,26 +74,18 @@ local function midi_event(data)
   end
 end
 
-function loopact1(stage)
-  trck1_pattern:stop() 
-  trck1_pattern:start() 
-  print(stage .. "loop 1")
-end
-
-function loopact2(stage)
-  trck2_pattern:stop() 
-  trck2_pattern:start() 
-  print(stage .. "loop 2")
-end
-
-function loopact3(stage)
-  trck3_pattern:stop() 
-  trck3_pattern:start() 
-  print(stage .. "loop 3")
-end
-
 function record_midi()
-  enc_pattern:watch(
+  trck1_pattern:watch(
+    {
+      ["midi"] = msg
+    }
+  )
+  trck2_pattern:watch(
+    {
+      ["midi"] = msg
+    }
+  )
+  trck3_pattern:watch(
     {
       ["midi"] = msg
     }
@@ -123,18 +124,17 @@ function init()
     table.insert(channels, i) 
   end
   
-  -- metro
-  loop1 = metro.init(loopact1, 1, -1)
-  loop2 = metro.init(loopact2, 1, -1)
-  loop3 = metro.init(loopact3, 1, -1)
+  table.insert(channels, "MPE")
+  params:add{type = "option", id = "midi_channel", name = "MIDI Channel", options = channels}
+  params:add{type = "number", id = "bend_range", name = "Pitch Bend Range", min = 1, max = 48, default = 2}
   
   -- tracks
   trck1_pattern = pattern_time.new()
-  trck1_pattern.process = parse_note 
+  trck1_pattern.process = parse_midi
   trck2_pattern = pattern_time.new()
-  trck2_pattern.process = parse_note 
+  trck2_pattern.process = parse_midi
   trck3_pattern = pattern_time.new()
-  trck3_pattern.process = parse_note 
+  trck3_pattern.process = parse_midi
   
   -- params
   MPCgrain.add_params()
