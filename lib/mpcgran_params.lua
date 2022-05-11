@@ -27,8 +27,6 @@ local param_names = {"pos", "bpm", "step", "amp", "att", "rel", "rnode", "trgsel
 
 local mspecs = {
   ["mpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
-  ["mbpm"] = controlspec.new(0, 240, "lin", 1, 120, ""),
-  ["mstep"] = controlspec.new(1, 128, "lin", 1, 1, ""),
   ["mamp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
   ["matt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
   ["mrel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
@@ -46,10 +44,21 @@ local mspecs = {
   ["filtmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["panmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["dellmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
-  ["delrmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
+  ["delrmod"] = controlspec.new(0, 1, "lin", 0, 1, "")
 }
 
-local mparam_names = {"mpos", "mbpm", "mstep", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+local mparam_names = {"mpos", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+
+local rspecs = {
+  ["run"] = controlspec.new(0, 1, "lin", 1, 0, ""),
+  ["rpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
+  ["rlvl"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
+  ["plvl"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
+  ["loop"] = controlspec.new(0, 1, "lin", 1, 0, ""),
+  ["mode"] = controlspec.new(0, 1, "lin", 1, 0, "")
+}
+
+local rparam_names = {"run", "rpos", "rlvl", "plvl", "loop", "mode"}
 
 -- initialize parameters:
 function MPCgrain.add_params()
@@ -76,6 +85,18 @@ function MPCgrain.add_params()
       name = mp_name,
       controlspec = mspecs[mp_name],
       action = function(x) engine[mp_name](x) end
+    }
+  end
+  params:add_group("MPCgrainrec", #rparam_names+1)
+  params:add_separator("recorder")
+  for i = 1,#rparam_names do
+    local rp_name = rparam_names[i]
+    params:add{
+      type = "control",
+      id = "MPCgrain_"..rp_name,
+      name = rp_name,
+      controlspec = rspecs[rp_name],
+      action = function(x) engine[rp_name](x) end
     }
   end
   
