@@ -22,17 +22,17 @@ local pad = {}
 local id_grp = 0
 local id_prm = 0
 local all_params = {}
-local grp_params = {"midi", "track", "sampl", "prog", "mods"}
+local grp_params = {"midi", "trcks", "sampl", "prog", "mods"}
 all_params[1] = {"in_device", "out_device"}
-all_params[2] = {"out_device"}
+all_params[2] = {"bpm", "num_1", "den_1", "num_2", "den_2", "num_3", "den_3"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop", "mode"}
-all_params[4] = {"pos", "bpm", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+all_params[4] = {"pos", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 all_params[5] = {"mpos", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
 
 -- MIDI input
 local function midi_event(data)
-  
-  record_midi()
+  "trcks", 
+  record_midi(), "num_1", "den_1"
   msg = midi.to_msg(data)
   local channel_param = params:get("midi_channel")
 
@@ -92,9 +92,27 @@ function record_midi()
   )
 end
 
+-- midi looper funcs
+
 function parse_midi(data)
   midiplay = data.midi
   -- todo
+end
+ 
+function playloop(num, den, id)
+  while true do
+    clock.sync(num/den)
+    track[id]:stop()
+    track[id]:start()
+  end
+end
+
+function recloop(num, den, id)
+  while true do
+    clock.sync(num/den)
+    track[id]:rec_stop()
+    track[id]:rec_start()
+  end
 end
 
 
@@ -129,15 +147,15 @@ function init()
   params:add{type = "number", id = "bend_range", name = "Pitch Bend Range", min = 1, max = 48, default = 2}
   
   -- tracks
-  trck1_pattern = pattern_time.new()
-  trck1_pattern.process = parse_midi
-  trck2_pattern = pattern_time.new()
-  trck2_pattern.process = parse_midi
-  trck3_pattern = pattern_time.new()
-  trck3_pattern.process = parse_midi
+  for i=1,3 do
+    track[i] = pattern_time.new()
+    track[i].process = parse_midi
+    track[i]:set_overdub(1)
+  end 
   
   -- params
   MPCgrain.add_params()
+  params:bang()
   
 end
 
