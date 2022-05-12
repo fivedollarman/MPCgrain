@@ -1,10 +1,11 @@
 local MPCgrain = {}
 local Formatters = require 'formatters'
+local tnum = {}
+local tden = {}
 
 -- ranges
 local specs = {
   ["pos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
-  ["bpm"] = controlspec.new(0, 240, "lin", 1, 120, ""),
   ["step"] = controlspec.new(1, 128, "lin", 1, 1, ""),
   ["amp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
   ["att"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
@@ -23,7 +24,7 @@ local specs = {
   ["pan"] = controlspec.PAN
 }
 
-local param_names = {"pos", "bpm", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+local param_names = {"pos", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 
 local mspecs = {
   ["mpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
@@ -99,16 +100,29 @@ function MPCgrain.add_params()
       action = function(x) engine[rp_name](x) end
     }
   end
-  
-  params:bang()
+  params:add_group("MPCgraintrack", 4)
+  params:add_separator("tracks")
+  params:add_control("MPCgrain_bpm", "bpm", controlspec.new(0, 240, "lin", 1, 120, ""))
+  params:set_action("MPCgrain_bpm", function(x) params:set("clock_tempo",x) end)
+  params:set_action("clock_tempo", function(x) engine.bpm(x) end)
+  for i=1,3 do
+    params:add_control("MPCgrain_play_" .. i,"play", controlspec.new(0, 1, "lin", 1, 0, ""))
+    params:set_action("MPCgrain_play_" .. i, function(x) playloop(tnum[i],tden[i],i) end)
+    params:add_control("MPCgrain_rec_" .. i,"play", controlspec.new(0, 1, "lin", 1, 0, ""))
+    params:set_action("MPCgrain_rec_" .. i, function(x) recloop(tnum[i],tden[i],i) end)
+    params:add_control("MPCgrain_num_" .. i, "tempo numerator", controlspec.new(1, 24, "lin", 1, 1, ""))
+    params:set_action("MPCgrain_num_" .. i, function(x) tnum[i]=x end)
+    params:add_control("MPCgrain_den_" .. i, "tempo denominator", controlspec.new(1, 24, "lin", 1, 8, ""))
+    params:set_action("MPCgrain_den_" .. i, function(x) tden[i]=x end)
+  end
 end
 
 -- a single-purpose triggering command fire a note
 function MPCgrain.trig(gate)
   if gate ~= nil then
-    engine.gate(gate)
+    engine.gate(gate) .. i
   end
-end
+end .. i
 
  -- we return these engine-specific Lua functions back to the host script:
 return MPCgrain
