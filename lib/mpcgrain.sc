@@ -24,6 +24,7 @@ Engine_mpcgrain : CroneEngine {
   
   var bpm=120;
   var step=1;
+  var pitchBendRatio = 1;
 	
   *new { arg context, doneCallback;
 	^super.new(context, doneCallback);
@@ -94,7 +95,7 @@ Engine_mpcgrain : CroneEngine {
    
    SynthDef(\grainsampler, {
     	arg buf=buff, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
-    	  rate=1, dur=0.5, transp=0, pan=0, trgsel=0, trgfrq=8,
+    	  rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
       	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0;
     	var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
     	tfmod = In.ar(~trigfreqmod.index + pos);
@@ -118,7 +119,7 @@ Engine_mpcgrain : CroneEngine {
 	    	trigger,
 	    	((bpm/(1.875*trgfrq))*dur) + ((bpm/(1.875*trgfrq))*dur*durmod),
 	    	buf,
-    		transp.midiratio + pitchmod.midiratio,
+    		transp.midiratio + pitchmod.midiratio + pitchBendRatio,
     		grainpos+(grainpos*posmod),
     		2,
 	    	pan+panmod,
@@ -226,7 +227,7 @@ Engine_mpcgrain : CroneEngine {
 		});
 		
 		// record(id, run)
-		this.addCommand(\noteOn, "if", { arg msg;
+		this.addCommand(\record, "if", { arg msg;
 			var id = msg[1], run = msg[2];
 			var rec;
 			context.server.makeBundle(nil, {
@@ -269,6 +270,12 @@ Engine_mpcgrain : CroneEngine {
 			padList.do({ arg v; v.gate = 0; });
 			modGroup.set(\gate, 0);
 			modList.do({ arg v; v.gate = 0; });
+		});
+		
+		// pitchBend(ratio)
+		this.addCommand(\pitchBend, "f", { arg msg;
+			pitchBendRatio = msg[1];
+			padGroup.set(\pitchBendRatio, pitchBendRatio);
 		});
 
 	}
