@@ -31,17 +31,18 @@ local recbtn = {0,0,0}
 local playbtn = {0,0,0}
 local trcksel = 1
 local runbtn = 0
+local padbtn = 0
 local testo = "d(L)b"
 
 local id_grp = 0
 local id_prm = 0
 local all_params = {}
 local grp_params = {"midi", "trcks", "sampl", "prog", "mods"}
-all_params[1] = {"in_device", "out_device"}
+all_params[1] = {"in_device", "out_device", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
 all_params[2] = {"sel", "bpm", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop", "mode"}
-all_params[4] = {"pos", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
-all_params[5] = {"mpos", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+all_params[4] = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+all_params[5] = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
 
 -- MIDI input
 local function midi_event(data)
@@ -57,35 +58,40 @@ function midi_act(msg)
       -- Note off
     if msg.type == "note_off" then
       note = msg.note
-      print("note off " .. note)
-      vel = msg.vel
       ch = msg.ch
       for i=1,#pad do
         if note == pad[i] then
+          print(i .. " note off")
           engine.noteOff(i)
           padon[i]=0
         end
       end
-    
     -- Note on
     elseif msg.type == "note_on" then
       note = msg.note
-      print("note on " .. note)
       vel = msg.vel
       ch = msg.ch
       for i=1,#pad do
         if note == pad[i] then
-          engine.noteOn(i, note, vel / 127)
+          print(i .. " note " .. note .." vel " .. vel)
+          engine.noteOn(i, note, vel)
           padon[i]=1
         end
       end
-      
     -- Pitch bend
     elseif msg.type == "pitchbend" then
       local bend_st = (util.round(msg.val / 2)) / 8192 * 2 -1 
       local bend_range = params:get("bend_range")
       engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
+    -- CC
+    elseif msg.type == "cc" then
+      -- Mod wheel
+      if msg.cc == 1 then
+        -- print("modw " .. msg.val)
+        params:set("MPCgrain_masterm", msg.val / 127)
+      end
     end
+    
   redraw()
 end
 
@@ -144,14 +150,22 @@ function init()
   out_device = midi.connect(2)
   out_device.event = midi_event
   
+  in_device = midi.connect(1)
+  in_device.event = midi_event
+  
+  local channels = {"All"}
+  for i = 1, 16 do 
+    table.insert(channels, i) 
+  end
+  table.insert(channels, "MPE")
+  
+  params:add_group("MPCgrainMIDI", 12)
+  
   params:add{type = "number", id = "MPCgrain_out_device", name = "MIDI out Device", min = 1, max = 4, default = 1, action = function(value)
     out_device.event = nil
     out_device = midi.connect(value)
     out_device.event = midi_event
   end}
-
-  in_device = midi.connect(1)
-  in_device.event = midi_event
   
   params:add{type = "number", id = "MPCgrain_in_device", name = "MIDI in Device", min = 1, max = 4, default = 1, action = function(value)
     in_device.event = nil
@@ -159,12 +173,6 @@ function init()
     in_device.event = midi_event
   end}
   
-  local channels = {"All"}
-  for i = 1, 16 do 
-    table.insert(channels, i) 
-  end
-  
-  table.insert(channels, "MPE")
   params:add{type = "option", id = "midi_channel", name = "MIDI Channel", options = channels}
   params:add{type = "number", id = "bend_range", name = "Pitch Bend Range", min = 1, max = 48, default = 2}
   
@@ -178,13 +186,13 @@ function init()
   for i=1,3 do
     track[i] = pattern_time.new()
     track[i].process = parse_midi
-    track[i]:set_overdub(1)
+    track[i]:set_overdub(0)
   end 
   
   -- params
   MPCgrain.add_params()
   
-  params:add_group("MPCgraintrack", 4)
+  params:add_group("MPCgraintrack", 12)
   params:add_separator("tracks")
   params:add_control("MPCgrain_bpm", "bpm", controlspec.new(0, 240, "lin", 1, 120, ""))
   params:set_action("MPCgrain_bpm", function(x) params:set("clock_tempo",x) end)
@@ -196,11 +204,14 @@ function init()
   params:add_control("MPCgrain_sel", "track select", controlspec.new(1, 3, "lin", 1, 1, ""))
   params:set_action("MPCgrain_sel", function(x) trcksel=x end)
   for i=1,3 do
-    params:add_control("MPCgrain_play_" .. i,"play", controlspec.new(0, 1, "lin", 1, 0, ""))
+    params:add_control("MPCgrain_play_" .. i,"play " .. i, controlspec.new(0, 1, "lin", 1, 0, ""))
     params:set_action("MPCgrain_play_" .. i, function(x) if x==1 then tplay[i]=clock.run(playloop,tnum,tden,i) end end)
-    params:add_control("MPCgrain_rec_" .. i,"play", controlspec.new(0, 1, "lin", 1, 0, ""))
+    params:add_control("MPCgrain_rec_" .. i,"rec " .. i, controlspec.new(0, 1, "lin", 1, 0, ""))
     params:set_action("MPCgrain_rec_" .. i, function(x) if x==1 then trec[i]=clock.run(recloop,tnum,tden,i) end end)
   end
+
+  -- load default pset
+  params:read()
   params:bang()
 end
 
@@ -209,7 +220,7 @@ function redraw()
   
   screen.level(8)
   screen.move(93, 6)
-  if trecloop[1]==1 then testo="rec.." elseif trecloop[2]==1 then testo="rec.." elseif trecloop[3]==1 then testo="rec.." else testo="d(u)b" end
+  if runbtn==1 then testo="sampling" elseif trecloop[1]==1 then testo="rec.." elseif trecloop[2]==1 then testo="rec.." elseif trecloop[3]==1 then testo="rec.." else testo="d(u)b" end
   screen.text(testo)
   
   -- note variation
@@ -226,10 +237,10 @@ function redraw()
   screen.stroke()
   
   screen.level(8)
-  screen.rect(1,31,4,2)
+  screen.rect(1,24+(34-(params:get("MPCgrain_masterm")*34)),4,2)
   screen.fill()
   screen.level(8)
-  screen.rect(1,34,4,2)
+  screen.rect(1,27+(34-(params:get("MPCgrain_masterm")*34)),4,2)
   screen.fill()
   
   -- screen
@@ -257,7 +268,7 @@ function redraw()
   screen.rect (12, 32, 70, 32)
   screen.fill()
   
-  if grp_params[id_grp+1] == "prog" or grp_params[id_grp+1] == "sampl" then
+  if grp_params[id_grp+1] == "prog" then
     screen.level(12)
     screen.rect (12, 32, 70, 32)
     screen.stroke() 
@@ -321,7 +332,7 @@ function redraw()
     screen.stroke()
     screen.level(5)
     if trcksel==i then
-      screen.rect(85+8+(12*(i-1))+1, 42+1, 7, 5)
+      screen.rect(85+8+(12*(i-1)), 42, 7, 5)
     else
       screen.rect(85+8+(12*(i-1)), 42, 7, 5)
     end
@@ -341,10 +352,10 @@ function redraw()
     screen.stroke()
     screen.level(5) 
     if recbtn[trcksel]==1 and i==1 then
-      screen.rect(85+8+(12*(i-1))+1, 53, 7, 5)
+      screen.rect(85+8+(12*(i-1)), 53, 7, 5)
     else
       if playbtn[trcksel]==1 and i==2 then
-        screen.rect(85+8+(12*(i-1))+1, 53, 7, 5)
+        screen.rect(85+8+(12*(i-1)), 53, 7, 5)
       else
         screen.rect(85+8+(12*(i-1)), 53, 7, 5)
       end
@@ -394,11 +405,22 @@ function key(n,z)
     recbtn[trcksel] = (recbtn[trcksel] + 1) % 2
     params:set("MPCgrain_rec_" .. trcksel, recbtn[trcksel])
   elseif n==2 and z==1 and grp_params[id_grp+1] == "sampl" then
-    runbtn = (runbtn + 1) % 2
+    runbtn = 1
+    params:set("MPCgrain_run", runbtn)
+  elseif n==2 and z==0 and grp_params[id_grp+1] == "sampl" then
+    runbtn = 0
     params:set("MPCgrain_run", runbtn)
   elseif n==3 and z==1 and grp_params[id_grp+1] == "trcks" then
     playbtn[trcksel] = (playbtn[trcksel] + 1) % 2
     params:set("MPCgrain_play_" .. trcksel, playbtn[trcksel])
+  elseif n==3 and z==1 and grp_params[id_grp+1] == "sampl" then
+    padbtn = (padbtn + 1) % 2
+    engine.noteOn(params:get("MPCgrain_rpos"), note, 127)
+    padon[params:get("MPCgrain_rpos")]=1
+  elseif n==3 and z==0 and grp_params[id_grp+1] == "sampl" then
+    padbtn = (padbtn + 1) % 2
+    engine.noteOffAll()
+    padon[params:get("MPCgrain_rpos")]=0
   end
   redraw()
 end
