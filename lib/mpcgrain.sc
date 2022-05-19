@@ -1,290 +1,285 @@
-// CroneEngine_mpcgrain
-//
-// v1.0.0 
-// marcocinque d('u')b
+Engine_Thresher : CroneEngine {
+  classvar num_voices = 4;
 
-Engine_mpcgrain : CroneEngine {
+  var pg;
+  var <buffers;
+  var <recorders;
+  var <voices;
+  var <phases;
+  var effect;
+  var effectBus;
 
-  classvar maxNumVoices = 8;
-  
-  var padGroup;
-  var padList;
-  var modGroup;
-  var modList;
-  var recGroup;
-  var recList;
-  var recparams;
-  var padparams;
-  var modparams;
-	
-  var buff;
-  var buffread;
-  var diskwrite;
-  var diskread;
-  
-  var bpm=120;
-  var step=1;
-  var pitchBendRatio=1;
-	
   *new { arg context, doneCallback;
-	^super.new(context, doneCallback);
+    ^super.new(context, doneCallback);
   }
 
   alloc {
-	
-    buff = Buffer.alloc(context.server, 48000 * 64, 1);
-    buff.read("/home/we/dust/audio/tape/011.wav");
-	  
-    buffread = {
-      arg path = "/home/we/dust/code/MPCgrain/data/reallinn.wav", pos = 0, step=step, bpm=bpm;
-      var bufpos = 48000*((240/bpm)*(1/step)*pos);
-      buff.read(path, 0, -1, bufpos);
-    };
-       
-    diskwrite = {
-      buff.write("/home/we/dust/code/MPCgrain/data/" ++ "mpcgrain_" ++ Date.localtime.stamp ++ ".wav", sampleFormat: 'int24');
-    };
-    
-    diskread = {
-	    arg path="path";
-	    buff.read(path);
-    };
-    
-    ~pitchmod = Bus.audio(context.server,8);
-    ~durationmod = Bus.audio(context.server,8);
-    ~trigfreqmod = Bus.audio(context.server,8);
-    ~positionmod = Bus.audio(context.server,8);
-    ~filtcutmod = Bus.control(context.server,8);
-    ~panmod = Bus.control(context.server,8);
-    ~delayleftmod = Bus.audio(context.server,8);
-    ~delayrightmod = Bus.audio(context.server,8);
+    buffers = Array.fill(num_voices, { arg i;
+      var bufferLengthSeconds = 8;
 
-    recGroup = Group.new(context.xg);
-    recList = List.new();
-    padGroup = Group.new(context.xg);
-    padList = List.new();
-    modGroup = Group.new(context.xg);
-    modList = List.new();
-    
+      Buffer.alloc(
+        context.server,
+        context.server.sampleRate * bufferLengthSeconds,
+        bufnum: i
+      );
+    });
 
-		// Synths
-		
-	  SynthDef(\recorder, { arg rpos=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
-    	var input, runa, trigger, killEnvelope;
-    	killEnvelope = EnvGen.kr(envelope: Env.asr( 0, 1, 0.01), gate: run, doneAction: Done.freeSelf);
-    	input = SoundIn.ar(0);
-    	runa = Select(loop, [LFPulse.ar(1/((240/rbpm)*(1/rstep))), run]);
-    	trigger = Select(mode, [Impulse.ar(1/((240/rbpm)*(1/rstep))), Impulse.ar(1/((240/rbpm)*(8/rstep)))]);
-      RecordBuf.ar(input, buff, 48000*((240/rbpm)*(1/rstep)*rpos), rlvl, plvl, run*runa, loop, trigger, da);
+    SynthDef(\recordBuf, { arg bufnum = 0, run = 0, preLevel = 1.0, recLevel = 1.0;
+      var in = Mix.new(SoundIn.ar([0, 1]));
+
+      RecordBuf.ar(
+        in,
+        bufnum,
+        recLevel: recLevel,
+        preLevel: preLevel,
+        loop: 1,
+        run: run
+      );
     }).add;
+
+    SynthDef(\synth, {
+      arg out, effectBus, phase_out, buf,
+      gate=0, pos=0, speed=1, jitter=0, jitter_slew=0.0,
+      size=0.1, size_slew=0.0, density=0, density_slew=0.0, trig_mode=0, pitch=1, pitch_slew=0.0,
+      spread=0, gain=1, gain_slew=0.0, envscale=1, freeze=0, t_reset_pos=0, send=0, cutoff=20000, cutoff_slew=0.0, rq=1;
+
+      var grain_trig;
+      var jitter_sig;
+      var buf_dur;
+      var pan_sig;
+      var buf_pos;
+      var pos_sig;
+      var sig;
+      var level;
+
+      density = Lag2.kr(density, density_slew);
+      grain_trig = Select.kr(trig_mode, [Impulse.kr(density), Dust.kr(density)]);
+
+      buf_dur = BufDur.kr(buf);
+
+      pan_sig = TRand.kr(
+        trig: grain_trig,
+        lo: spread.neg,
+        hi: spread
+      );
+
+      jitter = Lag2.kr(jitter, jitter_slew);
+      jitter_sig = TRand.kr(
+        trig: grain_trig,
+        lo: buf_dur.reciprocal.neg * jitter,
+        hi: buf_dur.reciprocal * jitter
+      );
+
+      buf_pos = Phasor.kr(
+        trig: t_reset_pos,
+        rate: buf_dur.reciprocal / ControlRate.ir * speed,
+        resetPos: pos
+      );
+
+      pos_sig = Wrap.kr(Select.kr(freeze, [buf_pos, pos]));
+      
+      gain = Lag2.kr(gain, gain_slew);
+      size = Lag2.kr(size, size_slew);
+      pitch = Lag2.kr(pitch, pitch_slew);
+      cutoff = Lag2.kr(cutoff, cutoff_slew);
+      
+      
+      sig = GrainBuf.ar(2, grain_trig, size, buf, pitch, pos_sig + jitter_sig, 2, pan_sig, -1.0, 256.0);
+      sig = BLowPass4.ar(sig, cutoff, rq);
+      
+      level = EnvGen.kr(Env.asr(1, 1, 1), gate: gate, timeScale: envscale);
+
+      Out.ar(out, sig * level * gain);
+      Out.ar(effectBus, sig * level * send);
+      Out.kr(phase_out, pos_sig);
+    }).add;
+
+    SynthDef(\effect, {
+      arg in, out, fxgain=1, time=60.0, damp=0.1, verbsize=4.0, diff=0.7, modDepth=0.1,
+        modFreq=0.1, low=0.5, mid=1, high=1, lowcut=5000, highcut=2000, sampleRate=48000, bitDepth=32;
+
+      var sig = In.ar(in, 2);
+      sig = JPverb.ar(sig, time, damp, verbsize, diff, modDepth, modFreq, low, mid, high, lowcut, highcut);
+      sig = Decimator.ar(sig, sampleRate, bitDepth);
+      Out.ar(out, sig * fxgain);
+    }).add;
+
+    context.server.sync;
+
+    // fx bus
+    effectBus = Bus.audio(context.server, 2);
+
+    effect = Synth.new(\effect, [\in, effectBus.index, \out, context.out_b.index], target: context.xg);
+
+    phases = Array.fill(num_voices, { arg i; Bus.control(context.server); });
+
+    pg = ParGroup.head(context.xg);
+
+    voices = Array.fill(num_voices, { arg i;
+      Synth.new(\synth, [
+        \out, context.out_b.index,
+        \effectBus, effectBus.index,
+        \phase_out, phases[i].index,
+        \buf, buffers[i],
+      ], target: pg);
+    });
+
+    recorders = Array.fill(num_voices, { arg i;
+      Synth.new(\recordBuf, [
+        \bufnum, buffers[i].bufnum,
+        \run, 0
+      ], target: pg);
+    });
+
+    context.server.sync;
+
+    this.addCommand("time", "f", { arg msg; effect.set(\time, msg[1]); });
+    this.addCommand("damp", "f", { arg msg; effect.set(\damp, msg[1]); });
+    this.addCommand("verbsize", "f", { arg msg; effect.set(\verbsize, msg[1]); });
+    this.addCommand("diff", "f", { arg msg; effect.set(\diff, msg[1]); });
+    this.addCommand("mod_depth", "f", { arg msg; effect.set(\modDepth, msg[1]); });
+    this.addCommand("mod_freq", "f", { arg msg; effect.set(\modFreq, msg[1]); });
+    this.addCommand("low", "f", { arg msg; effect.set(\low, msg[1]); });
+    this.addCommand("mid", "f", { arg msg; effect.set(\mid, msg[1]); });
+    this.addCommand("high", "f", { arg msg; effect.set(\high, msg[1]); });
+    this.addCommand("lowcut", "f", { arg msg; effect.set(\lowcut, msg[1]); });
+    this.addCommand("highcut", "f", { arg msg; effect.set(\highcut, msg[1]); });
+    this.addCommand("fxgain", "f", { arg msg; effect.set(\fxgain, msg[1]); });
+    this.addCommand("bit_depth", "f", { arg msg; effect.set(\bitDepth, msg[1]); });
+
+    this.addCommand("record", "ii", { arg msg;
+      var voice = msg[1] - 1;
+      recorders[voice].set(\run, msg[2]);
+    });
+
+    this.addCommand("pre_level", "if", { arg msg;
+      var voice = msg[1] - 1;
+      recorders[voice].set(\preLevel, msg[2]);
+    });
+
+    this.addCommand("rec_level", "if", { arg msg;
+      var voice = msg[1] - 1;
+      recorders[voice].set(\recLevel, msg[2]);
+    });
+
+    this.addCommand("seek", "if", { arg msg;
+      var voice = msg[1] - 1;
+
+      voices[voice].set(\pos, msg[2]);
+      voices[voice].set(\t_reset_pos, 1);
+      voices[voice].set(\freeze, 0);
+    });
+
+    this.addCommand("gate", "ii", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\gate, msg[2]);
+    });
+
+    this.addCommand("speed", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\speed, msg[2]);
+    });
+
+    this.addCommand("jitter", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\jitter, msg[2]);
+    });
     
-    SynthDef(\lfosmod, {
-    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, lfoq=1, noiseq=0.5, mfiltcut=127,
-	      masterm=0, pitchmod=0, durmod=0, trigfmod=0, posmod=0, filtmod=0, panmod=0, dellmod=0, delrmod=0;
-    	var sig, env;
-      env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
-    	sig = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
-    	sig = sig * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5) * lfoq));
-    	sig = sig * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps) * noiseq));
-    	Out.ar(~pitchmod.index + mpos, sig * pitchmod * masterm);
-    	Out.ar(~durationmod.index  + mpos, sig * durmod * masterm);
-    	Out.ar(~trigfreqmod.index + mpos, sig * trigfmod * masterm);
-    	Out.ar(~positionmod.index + mpos, sig * posmod * masterm);
-     	Out.kr(~filtcutmod.index  + mpos, sig * filtmod * masterm);
-    	Out.kr(~panmod.index + mpos, sig * panmod * masterm);
-    	Out.ar(~delayleftmod.index + mpos, sig * dellmod * masterm);
-    	Out.ar(~delayrightmod.index + mpos, sig * delrmod * masterm);
-   }).add;
-   
-   SynthDef(\grainsampler, {
-    	arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
-    	  rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
-      	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0;
-    	var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
-    	tfmod = In.ar(~trigfreqmod.index + pos);
-    	durmod = In.ar(~durationmod.index + pos);
-    	pitchmod = In.ar(~pitchmod.index + pos);
-    	posmod = In.ar(~positionmod.index + pos);
-    	panmod = In.kr(~panmod.index + pos);
-    	cutmod = In.kr(~filtcutmod.index + pos);
-    	delrmod = In.ar(~delayrightmod.index + pos);
-      dellmod = In.ar(~delayleftmod.index + pos);
-    	trigger = Select.ar(trgsel,
-    		[Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]
-	 		);
-    	grainpos = Phasor.ar(
-	    	0,
-	    	(bpm/60)*(1/step),
-	    	(((60/bpm)*step*pos)/128) + ((((60/bpm)*step)/128)*posmod),
-	    	(((60/bpm)*step*(pos+1)*rate)/128) + ((((60/bpm)*step)/128)*posmod)
-    	);
-	    sig = GrainBuf.ar(2,
-	    	trigger,
-	    	((bpm/(1.875*trgfrq))*dur) + ((bpm/(1.875*trgfrq))*dur*durmod),
-	    	buf,
-    		transp.midiratio + pitchmod.midiratio + pitchBendRatio,
-    		grainpos+(grainpos*posmod),
-    		2,
-	    	pan+panmod,
-	    	maxGrains: 64
-	    );
-    	sig = RLPF.ar(sig, filtcut.midicps + cutmod.midicps, rq);
-    	sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
-    	env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
-    	sig = (sig) * EnvGen.kr(env, gate, doneAction: Done.freeSelf);
-    	Out.ar(0, sig);
-   }).add;
-   
+    this.addCommand("jitter_slew", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\jitter_slew, msg[2]);
+    });
 
-		// Commands
-		
-		recparams = Dictionary.newFrom([
-		  \rpos, 0, 
-		  \rlvl, 1, 
-		  \plvl, 0, 
-		  \loop, 1, 
-		  \mode, 1, 
-		  \da, 2;
-		]);
+    this.addCommand("size", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\size, msg[2]);
+    });
 
-		recparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				recparams[key] = msg[1];
-				recGroup.set(key, msg[1]);
-			});
+    this.addCommand("size_slew", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\size_slew, msg[2]);
+    });
+
+    this.addCommand("density", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\density, msg[2]);
+    });
+    
+    this.addCommand("density_slew", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\density_slew, msg[2]);
+    });
+
+    this.addCommand("trig_mode", "ii", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\trig_mode, msg[2]);
+    });
+
+    this.addCommand("pitch", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\pitch, msg[2]);
+    });
+    
+    this.addCommand("pitch_slew", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\pitch_slew, msg[2]);
+    });
+
+    this.addCommand("spread", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\spread, msg[2]);
+    });
+
+    this.addCommand("gain", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\gain, msg[2]);
+    });
+    
+    this.addCommand("gain_slew", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\gain_slew, msg[2]);
+    });
+
+    this.addCommand("envscale", "if", { arg msg;
+      var voice = msg[1] - 1;
+      voices[voice].set(\envscale, msg[2]);
+    });
+    
+    this.addCommand("cutoff", "if", { arg msg;
+		var voice = msg[1] -1;
+		voices[voice].set(\cutoff, msg[2]);
 		});
 		
-		padparams = Dictionary.newFrom([
-			\amp, 1,
-			\att, 0.1, 
-			\rel, 1, 
-			\rnode, 1,
-    	\rate, 1, 
-    	\dur, 0.5, 
-    	\transp, 0, 
-    	\pan, 0, 
-    	\trgsel, 0, 
-    	\trgfrq, 8,
-      \filtcut, 127, 
-      \rq, 1, 
-      \delr, 0.0225, 
-      \dell, 0.0127, 
-      \drywet, 0;
-		]);
-		
-		padparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				padparams[key] = msg[1];
-				padGroup.set(key, msg[1]);
-			});
+		this.addCommand("cutoff_slew", "if", { arg msg;
+		var voice = msg[1] -1;
+		voices[voice].set(\cutoff_slew, msg[2]);
 		});
 		
-		modparams = Dictionary.newFrom([
-			\mamp, 1, 
-			\matt, 0, 
-			\mrel, 1, 
-			\mrnode, 1, 
-			\lfof, 1, 
-			\lfoph, 0, 
-			\lfoq, 1, 
-			\noiseq, 0.5, 
-			\mfiltcut, 127,
-	    \pitchmod, 0, 
-	    \durmod, 0, 
-	    \trigfmod, 0, 
-	    \posmod, 0, 
-	    \filtmod, 0, 
-	    \panmod, 0, 
-	    \dellmod, 0, 
-	    \delrmod, 0,
-	    \masterm, 0;
-		]);
-		
-		modparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				modparams[key] = msg[1];
-				modGroup.set(key, msg[1]);
-			});
+		this.addCommand("rq", "if", { arg msg;
+		var voice = msg[1] -1;
+		voices[voice].set(\rq, msg[2]);
 		});
 
-		// noteOn(id, note, vel)
-		this.addCommand(\noteOn, "iff", { arg msg;
-			var id = msg[1], note = msg[2], vel = msg[3];
-			var mpc, mod;
-			("playing " ++ id).postln;
-			context.server.makeBundle(nil, {
-		   	mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
-		  		\buf, buff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
-		  		++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
-		  	padList.addFirst(mpc);
-		  	mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
-		  		\mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), gate: 1);
-		  	modList.addFirst(mod);
-		  });
-		});
+    this.addCommand("send", "if", { arg msg;
+    var voice = msg[1] -1;
+    voices[voice].set(\send, msg[2]);
+    });
+    
 
-		// noteOff(id)
-		this.addCommand(\noteOff, "i", { arg msg;
-			var ompc = padList.detect{arg v; v.id == msg[1]};
-			var omod = modList.detect{arg v; v.id == msg[1]};
-			if(ompc.notNil, {
-				ompc.theSynth.set(\gate, 0);
-				ompc.gate = 0;
-			});
-			if(omod.notNil, {
-				omod.theMod.set(\mgate, 0);
-				omod.mgate = 0;
-			});
-		});
+    num_voices.do({ arg i;
+      this.addPoll(("phase_" ++ (i + 1)).asSymbol, {
+        var val = phases[i].getSynchronous;
+        val
+      });
+    });
+  }
 
-		// noteOffAll()
-		this.addCommand(\noteOffAll, "", { arg msg;
-			padGroup.set(\gate, 0);
-			padList.do({ arg v; v.gate = 0; });
-			modGroup.set(\mgate, 0);
-			modList.do({ arg v; v.mgate = 0; });
-		});
-		
-		// pitchBend(ratio)
-		this.addCommand(\pitchBend, "f", { arg msg;
-			pitchBendRatio = msg[1];
-			padGroup.set(\pitchBendRatio, pitchBendRatio);
-		});
-		
-		// bpm(value)
-		this.addCommand(\bpm, "f", { arg msg;
-			bpm = msg[1];
-			padGroup.set(\bpm, bpm);
-			modGroup.set(\mbpm, bpm);
-			recGroup.set(\rbpm, bpm);
-		});
-		
-		// step(value)
-		this.addCommand(\step, "f", { arg msg;
-			step = msg[1];
-			padGroup.set(\step, step);
-			recGroup.set(\rstep, step);
-		});
-		
-		// run(id, value)
-		this.addCommand(\run, "if", { arg msg;
-			var id = msg[1], run = msg[2];
-			var rec;
-			"sampling".postln;
-			context.server.makeBundle(nil, {
-		   	rec = (id: 1, theRec: Synth.new(defName: \recorder, args: [
-		  		\rpos, id, \run, run, \rbpm, bpm, \rstep, step]
-		  		++ recparams.getPairs, target: recGroup));
-		  });
-		});
-
-	}
-
-	free {
-		padGroup.free;
-		modGroup.free;
-		recGroup.free;
-		buff.close;
-    buff.free;
-	}
+  free {
+    voices.do({ arg voice; voice.free; });
+    phases.do({ arg bus; bus.free; });
+    buffers.do({ arg b; b.free; });
+    recorders.do({ arg r; r.free; });
+    effect.free;
+    effectBus.free;
+  }
 }
