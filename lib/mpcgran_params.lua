@@ -3,14 +3,13 @@ local Formatters = require 'formatters'
 
 -- ranges
 local specs = {
-  ["pos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
   ["step"] = controlspec.new(1, 128, "lin", 1, 1, ""),
   ["amp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
-  ["att"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
-  ["rel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
+  ["att"] = controlspec.new(0, 4, "lin", 0.05, 0, "s"),
+  ["rel"] = controlspec.new(0, 8, "lin", 0.1, 1, "s"),
   ["rnode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
   ["trgsel"] = controlspec.new(0, 1, "lin", 1, 0, ""),
-  ["trgfrq"] = controlspec.new(0, 128, "lin", 1, 8, ""),
+  ["trgfrq"] = controlspec.new(1, 128, "lin", 1, 16, ""),
   ["rate"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
   ["transp"] = controlspec.new(-36, 36, "lin", 0, 0, ""),
@@ -22,10 +21,9 @@ local specs = {
   ["pan"] = controlspec.PAN
 }
 
-local param_names = {"pos", "step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+local param_names = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 
 local mspecs = {
-  ["mpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
   ["mamp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
   ["matt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
   ["mrel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
@@ -35,7 +33,6 @@ local mspecs = {
   ["lfofq"] = controlspec.new(0, 1, "exp", 0, 0, ""),
   ["noiseq"] = controlspec.new(0, 2, "exp", 0, 0, ""),
   ["mfiltcut"] = controlspec.new(1, 128, "lin", 1, 1, ""),
-  ["mastermod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["pitchmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["durmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["trigftmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
@@ -43,10 +40,11 @@ local mspecs = {
   ["filtmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["panmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["dellmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
-  ["delrmod"] = controlspec.new(0, 1, "lin", 0, 1, "")
+  ["delrmod"] = controlspec.new(0, 1, "lin", 0, 1, ""),
+  ["masterm"] = controlspec.new(0, 1, "lin", 0, 1, "")
 }
 
-local mparam_names = {"mpos", "mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "mastermod", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+local mparam_names = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod", "masterm"}
 
 local rspecs = {
   ["run"] = controlspec.new(0, 1, "lin", 1, 0, ""),
