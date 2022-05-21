@@ -42,7 +42,7 @@ all_params[1] = {"in_device", "out_device", "note_1", "note_2", "note_3", "note_
 all_params[2] = {"sel", "bpm", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop", "mode"}
 all_params[4] = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
-all_params[5] = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "lfoq", "noiseq", "mfiltcut", "pitchmod", "durmod", "trigfmod", "posmod", "filtmod", "panmod", "dellmod", "delrmod"}
+all_params[5] = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "mfiltcut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trignoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise"}
 
 -- MIDI input
 local function midi_event(data)
