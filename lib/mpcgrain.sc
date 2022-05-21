@@ -17,7 +17,7 @@ Engine_mpcgrain : CroneEngine {
   var padparams;
   var modparams;
 	
-  var buff;
+  var <sbuff;
   var buffread;
   var diskwrite;
   var diskread;
@@ -32,22 +32,22 @@ Engine_mpcgrain : CroneEngine {
 
   alloc {
 	
-    buff = Buffer.alloc(context.server, 48000 * 64, 1);
-    buff.read("/home/we/dust/audio/tape/011.wav");
+    sbuff = Buffer.alloc(context.server, 48000 * 64, 1);
+    sbuff.read("/home/we/dust/audio/tape/011.wav");
 	  
     buffread = {
       arg path = "/home/we/dust/code/MPCgrain/data/reallinn.wav", pos = 0, step=step, bpm=bpm;
       var bufpos = 48000*((240/bpm)*(1/step)*pos);
-      buff.read(path, 0, -1, bufpos);
+      sbuff.read(path, 0, -1, bufpos);
     };
        
     diskwrite = {
-      buff.write("/home/we/dust/code/MPCgrain/data/" ++ "mpcgrain_" ++ Date.localtime.stamp ++ ".wav", sampleFormat: 'int24');
+      sbuff.write("/home/we/dust/code/MPCgrain/data/" ++ "mpcgrain_" ++ Date.localtime.stamp ++ ".wav", sampleFormat: 'int24');
     };
     
     diskread = {
 	    arg path="path";
-	    buff.read(path);
+	    sbuff.read(path);
     };
     
     ~pitchmod = Bus.audio(context.server,8);
@@ -69,31 +69,31 @@ Engine_mpcgrain : CroneEngine {
 
 		// Synths
 		
-	  SynthDef(\recorder, { arg rpos=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
+	  SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
     	var input, runa, trigger, killEnvelope;
     	killEnvelope = EnvGen.kr(envelope: Env.asr( 0, 1, 0.01), gate: run, doneAction: Done.freeSelf);
     	input = SoundIn.ar(0);
     	runa = Select(loop, [LFPulse.ar(1/((240/rbpm)*(1/rstep))), run]);
     	trigger = Select(mode, [Impulse.ar(1/((240/rbpm)*(1/rstep))), Impulse.ar(1/((240/rbpm)*(8/rstep)))]);
-      RecordBuf.ar(input, buff, 48000*((240/rbpm)*(1/rstep)*rpos), rlvl, plvl, run*runa, loop, trigger, da);
+      RecordBuf.ar(input, rbuf, 48000*((240/rbpm)*(1/rstep)*rpos), rlvl, plvl, run*runa, loop, trigger, da);
     }).add;
     
     SynthDef(\lfosmod, {
-    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, lfoq=1, noiseq=0.5, mfiltcut=127,
-	      masterm=0, pitchmod=0, durmod=0, trigfmod=0, posmod=0, filtmod=0, panmod=0, dellmod=0, delrmod=0;
-    	var sig, env;
+    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, mfiltcut=127,
+	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
+    	var sigenv, siglfo, signoise, env;
       env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
-    	sig = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
-    	sig = sig * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5) * lfoq));
-    	sig = sig * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps) * noiseq));
-    	Out.ar(~pitchmod.index + mpos, sig * pitchmod * masterm);
-    	Out.ar(~durationmod.index  + mpos, sig * durmod * masterm);
-    	Out.ar(~trigfreqmod.index + mpos, sig * trigfmod * masterm);
-    	Out.ar(~positionmod.index + mpos, sig * posmod * masterm);
-     	Out.kr(~filtcutmod.index  + mpos, sig * filtmod * masterm);
-    	Out.kr(~panmod.index + mpos, sig * panmod * masterm);
-    	Out.ar(~delayleftmod.index + mpos, sig * dellmod * masterm);
-    	Out.ar(~delayrightmod.index + mpos, sig * delrmod * masterm);
+    	sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
+    	siglfo = sigenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
+    	signoise = sigenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps)));
+    	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
+    	Out.ar(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
+    	Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
+    	Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
+     	Out.kr(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
+    	Out.kr(~panmod.index + mpos, ((siglfo * panlfo) + (signoise * pannoise)) * masterm);
+    	Out.ar(~delayleftmod.index + mpos, ((siglfo * delllfo) + (signoise * dellnoise)) * masterm);
+    	Out.ar(~delayrightmod.index + mpos, ((siglfo * delrlfo) + (signoise * delrnoise)) * masterm);
    }).add;
    
    SynthDef(\grainsampler, {
@@ -186,17 +186,23 @@ Engine_mpcgrain : CroneEngine {
 			\mrnode, 1, 
 			\lfof, 1, 
 			\lfoph, 0, 
-			\lfoq, 1, 
-			\noiseq, 0.5, 
 			\mfiltcut, 127,
-	    \pitchmod, 0, 
-	    \durmod, 0, 
-	    \trigfmod, 0, 
-	    \posmod, 0, 
-	    \filtmod, 0, 
-	    \panmod, 0, 
-	    \dellmod, 0, 
-	    \delrmod, 0,
+	    \pitchlfo, 0, 
+	    \durlfo, 0, 
+	    \trigflfo, 0, 
+	    \poslfo, 0, 
+	    \filtlfo, 0, 
+	    \panlfo, 0, 
+	    \delllfo, 0, 
+	    \delrlfo, 0,
+	    \pitchnoise, 0, 
+	    \durnoise, 0, 
+	    \trigfnoise, 0, 
+	    \posnoise, 0, 
+	    \filtnoise, 0, 
+	    \pannoise, 0, 
+	    \dellnoise, 0, 
+	    \delrnoise, 0,
 	    \masterm, 0;
 		]);
 		
@@ -214,7 +220,7 @@ Engine_mpcgrain : CroneEngine {
 			("playing " ++ id).postln;
 			context.server.makeBundle(nil, {
 		   	mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
-		  		\buf, buff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
+		  		\buf, sbuff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
 		  		++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
 		  	padList.addFirst(mpc);
 		  	mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
@@ -273,7 +279,7 @@ Engine_mpcgrain : CroneEngine {
 			"sampling".postln;
 			context.server.makeBundle(nil, {
 		   	rec = (id: 1, theRec: Synth.new(defName: \recorder, args: [
-		  		\rpos, id, \run, run, \rbpm, bpm, \rstep, step]
+		  		\rpos, id, \rbuf, sbuff, \run, run, \rbpm, bpm, \rstep, step]
 		  		++ recparams.getPairs, target: recGroup));
 		  });
 		});
@@ -284,20 +290,7 @@ Engine_mpcgrain : CroneEngine {
 		padGroup.free;
 		modGroup.free;
 		recGroup.free;
-		buff.close;
-    buff.free;
+		sbuff.close;
+    sbuff.free;
 	}
 }
-© 2022 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Loading complete
