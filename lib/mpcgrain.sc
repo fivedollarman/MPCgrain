@@ -67,9 +67,9 @@ Engine_mpcgrain : CroneEngine {
     modList = List.new();
     
 
-		// Synths
+    // Synths
 		
-	  SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
+    SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
     	var input, runa, trigger, killEnvelope;
     	killEnvelope = EnvGen.kr(envelope: Env.asr( 0, 1, 0.01), gate: run, doneAction: Done.freeSelf);
     	input = SoundIn.ar(0);
@@ -83,7 +83,7 @@ Engine_mpcgrain : CroneEngine {
 	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
     	var sigenv, siglfo, signoise, env;
       env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
-    	sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
+      sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
     	siglfo = sigenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
     	signoise = sigenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps)));
     	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
@@ -136,9 +136,9 @@ Engine_mpcgrain : CroneEngine {
    }).add;
    
 
-		// Commands
+   // Commands
 		
-		recparams = Dictionary.newFrom([
+   recparams = Dictionary.newFrom([
 		  \rpos, 0, 
 		  \rlvl, 1, 
 		  \plvl, 0, 
@@ -147,66 +147,66 @@ Engine_mpcgrain : CroneEngine {
 		  \da, 2;
 		]);
 
-		recparams.keysDo({ arg key;
+   recparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				recparams[key] = msg[1];
 				recGroup.set(key, msg[1]);
 			});
 		});
 		
-		padparams = Dictionary.newFrom([
-			\amp, 1,
-			\att, 0.1, 
-			\rel, 1, 
-			\rnode, 1,
-    	\rate, 1, 
-    	\dur, 0.5, 
-    	\transp, 0, 
-    	\pan, 0, 
-    	\trgsel, 0, 
-    	\trgfrq, 8,
-      \filtcut, 127, 
-      \rq, 1, 
-      \delr, 0.0225, 
-      \dell, 0.0127, 
-      \drywet, 0;
-		]);
+   padparams = Dictionary.newFrom([
+    \amp, 1,
+    \att, 0.1, 
+    \rel, 1, 
+    \rnode, 1,
+    \rate, 1, 
+    \dur, 0.5, 
+    \transp, 0, 
+    \pan, 0, 
+    \trgsel, 0, 
+    \trgfrq, 8,
+    \filtcut, 127, 
+    \rq, 1, 
+    \delr, 0.0225, 
+    \dell, 0.0127, 
+    \drywet, 0;
+  ]);
 		
-		padparams.keysDo({ arg key;
+  padparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				padparams[key] = msg[1];
 				padGroup.set(key, msg[1]);
 			});
 		});
 		
-		modparams = Dictionary.newFrom([
-			\mamp, 1, 
-			\matt, 0, 
-			\mrel, 1, 
-			\mrnode, 1, 
-			\lfof, 1, 
-			\lfoph, 0, 
-			\mfiltcut, 127,
-	    \pitchlfo, 0, 
-	    \durlfo, 0, 
-	    \trigflfo, 0, 
-	    \poslfo, 0, 
-	    \filtlfo, 0, 
-	    \panlfo, 0, 
-	    \delllfo, 0, 
-	    \delrlfo, 0,
-	    \pitchnoise, 0, 
-	    \durnoise, 0, 
-	    \trigfnoise, 0, 
-	    \posnoise, 0, 
-	    \filtnoise, 0, 
-	    \pannoise, 0, 
-	    \dellnoise, 0, 
-	    \delrnoise, 0,
-	    \masterm, 0;
-		]);
+   modparams = Dictionary.newFrom([
+	\mamp, 1, 
+	\matt, 0, 
+	\mrel, 1, 
+	\mrnode, 1, 
+	\lfof, 1, 
+	\lfoph, 0, 
+	\mfiltcut, 127,
+	\pitchlfo, 0, 
+	\durlfo, 0, 
+	\trigflfo, 0, 
+	\poslfo, 0, 
+	\filtlfo, 0, 
+	\panlfo, 0, 
+	\delllfo, 0, 
+	\delrlfo, 0,
+	\pitchnoise, 0, 
+	\durnoise, 0, 
+	\trigfnoise, 0, 
+	\posnoise, 0, 
+	\filtnoise, 0, 
+	\pannoise, 0, 
+	\dellnoise, 0, 
+	\delrnoise, 0,
+	\masterm, 0;
+   ]);
 		
-		modparams.keysDo({ arg key;
+   modparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				modparams[key] = msg[1];
 				modGroup.set(key, msg[1]);
