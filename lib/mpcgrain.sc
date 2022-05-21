@@ -4,8 +4,6 @@
 // marcocinque d('u')b
 
 Engine_mpcgrain : CroneEngine {
-
-  classvar maxNumVoices = 8;
   
   var padGroup;
   var padList;
@@ -17,7 +15,7 @@ Engine_mpcgrain : CroneEngine {
   var padparams;
   var modparams;
 	
-  var <sbuff;
+  var sbuff;
   var buffread;
   var diskwrite;
   var diskread;
@@ -32,22 +30,17 @@ Engine_mpcgrain : CroneEngine {
 
   alloc {
 	
-    sbuff = Buffer.alloc(context.server, 48000 * 64, 1);
-    sbuff.read("/home/we/dust/audio/tape/011.wav");
+    sbuff = Buffer.alloc(context.server, context.server.sampleRate * 64, 1);
 	  
     buffread = {
       arg path = "/home/we/dust/code/MPCgrain/data/reallinn.wav", pos = 0, step=step, bpm=bpm;
       var bufpos = 48000*((240/bpm)*(1/step)*pos);
-      sbuff.read(path, 0, -1, bufpos);
+      sbuff.readChannel(path, 0, -1, bufpos, channels:[0]);
     };
        
     diskwrite = {
-      sbuff.write("/home/we/dust/code/MPCgrain/data/" ++ "mpcgrain_" ++ Date.localtime.stamp ++ ".wav", sampleFormat: 'int24');
-    };
-    
-    diskread = {
-	    arg path="path";
-	    sbuff.read(path);
+      arg numsamp=1;
+      sbuff.write("/home/we/dust/code/MPCgrain/data/" ++ "MPCgrain_" ++ numsamp ++ ".wav", sampleFormat: 'int24');
     };
     
     ~pitchmod = Bus.audio(context.server,8);
@@ -67,15 +60,13 @@ Engine_mpcgrain : CroneEngine {
     modList = List.new();
     
 
-    // Synths
+		// Synths
 		
-    SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm = bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1, da=2;
-    	var input, runa, trigger, killEnvelope;
-    	killEnvelope = EnvGen.kr(envelope: Env.asr( 0, 1, 0.01), gate: run, doneAction: Done.freeSelf);
+	  SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1;
+    	var input, trigger;
     	input = SoundIn.ar(0);
-    	runa = Select(loop, [LFPulse.ar(1/((240/rbpm)*(1/rstep))), run]);
-    	trigger = Select(mode, [Impulse.ar(1/((240/rbpm)*(1/rstep))), Impulse.ar(1/((240/rbpm)*(8/rstep)))]);
-      RecordBuf.ar(input, rbuf, 48000*((240/rbpm)*(1/rstep)*rpos), rlvl, plvl, run*runa, loop, trigger, da);
+    	trigger = Select(mode, [LFPulse.ar(rbpm/(60*rstep)), LFPulse.ar(rbpm/(60*rstep*8))]);
+      RecordBuf.ar(input, rbuf, 48000*((240/rbpm)*rstep*rpos), rlvl, plvl, run, loop, trigger, doneAction: Done.freeSelf);
     }).add;
     
     SynthDef(\lfosmod, {
@@ -83,7 +74,7 @@ Engine_mpcgrain : CroneEngine {
 	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
     	var sigenv, siglfo, signoise, env;
       env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
-      sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
+    	sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
     	siglfo = sigenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
     	signoise = sigenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps)));
     	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
@@ -120,7 +111,7 @@ Engine_mpcgrain : CroneEngine {
     	);
 	    sig = GrainBuf.ar(2,
 	    	trigger,
-	    	((bpm/(1.875*trgfrq))*dur) + ((bpm/(1.875*trgfrq))*dur*durmod),
+	    	(((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
 	    	buf,
     		transp.midiratio + pitchmod.midiratio + pitchBendRatio,
     		grainpos+(grainpos*posmod),
@@ -136,9 +127,9 @@ Engine_mpcgrain : CroneEngine {
    }).add;
    
 
-   // Commands
+		// Commands
 		
-   recparams = Dictionary.newFrom([
+		recparams = Dictionary.newFrom([
 		  \rpos, 0, 
 		  \rlvl, 1, 
 		  \plvl, 0, 
@@ -147,66 +138,66 @@ Engine_mpcgrain : CroneEngine {
 		  \da, 2;
 		]);
 
-   recparams.keysDo({ arg key;
+		recparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				recparams[key] = msg[1];
 				recGroup.set(key, msg[1]);
 			});
 		});
 		
-   padparams = Dictionary.newFrom([
-    \amp, 1,
-    \att, 0.1, 
-    \rel, 1, 
-    \rnode, 1,
-    \rate, 1, 
-    \dur, 0.5, 
-    \transp, 0, 
-    \pan, 0, 
-    \trgsel, 0, 
-    \trgfrq, 8,
-    \filtcut, 127, 
-    \rq, 1, 
-    \delr, 0.0225, 
-    \dell, 0.0127, 
-    \drywet, 0;
-  ]);
+		padparams = Dictionary.newFrom([
+			\amp, 1,
+			\att, 0.1, 
+			\rel, 1, 
+			\rnode, 1,
+    	\rate, 1, 
+    	\dur, 0.5, 
+    	\transp, 0, 
+    	\pan, 0, 
+    	\trgsel, 0, 
+    	\trgfrq, 8,
+      \filtcut, 127, 
+      \rq, 1, 
+      \delr, 0.0225, 
+      \dell, 0.0127, 
+      \drywet, 0;
+		]);
 		
-  padparams.keysDo({ arg key;
+		padparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				padparams[key] = msg[1];
 				padGroup.set(key, msg[1]);
 			});
 		});
 		
-   modparams = Dictionary.newFrom([
-	\mamp, 1, 
-	\matt, 0, 
-	\mrel, 1, 
-	\mrnode, 1, 
-	\lfof, 1, 
-	\lfoph, 0, 
-	\mfiltcut, 127,
-	\pitchlfo, 0, 
-	\durlfo, 0, 
-	\trigflfo, 0, 
-	\poslfo, 0, 
-	\filtlfo, 0, 
-	\panlfo, 0, 
-	\delllfo, 0, 
-	\delrlfo, 0,
-	\pitchnoise, 0, 
-	\durnoise, 0, 
-	\trigfnoise, 0, 
-	\posnoise, 0, 
-	\filtnoise, 0, 
-	\pannoise, 0, 
-	\dellnoise, 0, 
-	\delrnoise, 0,
-	\masterm, 0;
-   ]);
+		modparams = Dictionary.newFrom([
+			\mamp, 1, 
+			\matt, 0, 
+			\mrel, 1, 
+			\mrnode, 1, 
+			\lfof, 1, 
+			\lfoph, 0, 
+			\mfiltcut, 127,
+	    \pitchlfo, 0, 
+	    \durlfo, 0, 
+	    \trigflfo, 0, 
+	    \poslfo, 0, 
+	    \filtlfo, 0, 
+	    \panlfo, 0, 
+	    \delllfo, 0, 
+	    \delrlfo, 0,
+	    \pitchnoise, 0, 
+	    \durnoise, 0, 
+	    \trigfnoise, 0, 
+	    \posnoise, 0, 
+	    \filtnoise, 0, 
+	    \pannoise, 0, 
+	    \dellnoise, 0, 
+	    \delrnoise, 0,
+	    \masterm, 0;
+		]);
 		
-   modparams.keysDo({ arg key;
+		modparams.keysDo({ arg key;
 			this.addCommand(key, "f", { arg msg;
 				modparams[key] = msg[1];
 				modGroup.set(key, msg[1]);
@@ -224,7 +215,7 @@ Engine_mpcgrain : CroneEngine {
 		  		++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
 		  	padList.addFirst(mpc);
 		  	mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
-		  		\mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), gate: 1);
+		  		\mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), mgate: 1);
 		  	modList.addFirst(mod);
 		  });
 		});
@@ -278,10 +269,26 @@ Engine_mpcgrain : CroneEngine {
 			var rec;
 			"sampling".postln;
 			context.server.makeBundle(nil, {
-		   	rec = (id: 1, theRec: Synth.new(defName: \recorder, args: [
-		  		\rpos, id, \rbuf, sbuff, \run, run, \rbpm, bpm, \rstep, step]
-		  		++ recparams.getPairs, target: recGroup));
+		   	rec = (id: id, theRec: Synth.new(defName: \recorder, args: [
+		  		\rpos, id-1, \rbuf, sbuff, \run, run, \rbpm, bpm, \rstep, step]
+		  		++ recparams.getPairs, target: recGroup).onFree({ recList.remove(rec); }), run: 1);
+		  	recList.addFirst(rec);
 		  });
+		});
+		
+		// runOff()
+		this.addCommand(\runOff, "", {
+		  "stop sampling".postln;
+			recGroup.set(\run, 0);
+			recList.do({ arg v; v.run = 0; });
+		});
+
+		// writesamp(value)
+		this.addCommand(\writesamp, "i", { arg msg;
+			var numsamp = msg[1];
+			sbuff.readChannel("/home/we/dust/audio/tape/0011.wav", channels:[1]);
+			"write".postln;
+			diskwrite.value(numsamp);
 		});
 
 	}
