@@ -53,7 +53,6 @@ local mspecs = {
 local mparam_names = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "mfiltcut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise", "masterm"}
 
 local rspecs = {
-  ["run"] = controlspec.new(0, 1, "lin", 1, 0, ""),
   ["rpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
   ["rlvl"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
   ["plvl"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
@@ -61,7 +60,7 @@ local rspecs = {
   ["mode"] = controlspec.new(0, 1, "lin", 1, 0, "")
 }
 
-local rparam_names = {"run", "rpos", "rlvl", "plvl", "loop", "mode"}
+local rparam_names = {"rpos", "rlvl", "plvl", "loop", "mode"}
 
 -- initialize parameters:
 function MPCgrain.add_params()
@@ -90,7 +89,7 @@ function MPCgrain.add_params()
       action = function(x) engine[mp_name](x) end
     }
   end
-  params:add_group("MPCgrainrec", #rparam_names+1)
+  params:add_group("MPCgrainrec", #rparam_names+2)
   params:add_separator("recorder")
   for i = 1,#rparam_names do
     local rp_name = rparam_names[i]
@@ -101,6 +100,8 @@ function MPCgrain.add_params()
       controlspec = rspecs[rp_name],
       action = function(x) engine[rp_name](x) end
     }
+    params:add_binary("MPCgrain_run", "run", "toggle",1)
+    params:set_action("MPCgrain_run",function(x) if x==1 then engine.run(params:get("MPCgrain_rpos"),x) else engine.runOff() end end)
   end
 end
 
