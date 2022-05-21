@@ -32,17 +32,20 @@ local playbtn = {0,0,0}
 local trcksel = 1
 local runbtn = 0
 local padbtn = 0
+local writebtn = 0
+local numfile = 1
 local testo = "d(L)b"
 
 local id_grp = 0
 local id_prm = 0
 local all_params = {}
-local grp_params = {"midi", "trcks", "sampl", "prog", "mods"}
-all_params[1] = {"in_device", "out_device", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
-all_params[2] = {"sel", "bpm", "num", "den"}
-all_params[3] = {"rpos", "rlvl", "plvl", "loop", "mode"}
-all_params[4] = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
-all_params[5] = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "mfiltcut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trignoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise"}
+local grp_params = {"trcks", "sampl", "prog", "mods", "midi", "file"}
+all_params[1] = {"sel", "bpm", "num", "den"}
+all_params[2] = {"rpos", "rlvl", "plvl", "loop", "mode"}
+all_params[3] = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+all_params[4] = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "mfiltcut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trignoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise"}
+all_params[5] = {"in_device", "out_device", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
+all_params[6] = {"numfile"}
 
 -- MIDI input
 local function midi_event(data)
@@ -209,6 +212,11 @@ function init()
     params:add_control("MPCgrain_rec_" .. i,"rec " .. i, controlspec.new(0, 1, "lin", 1, 0, ""))
     params:set_action("MPCgrain_rec_" .. i, function(x) if x==1 then trec[i]=clock.run(recloop,tnum,tden,i) end end)
   end
+  
+  params:add_group("MPCfile", 3)
+  params:add_separator("file")
+  params:add_control("MPCgrain_numfile", "numfile", controlspec.new(1, 127, "lin", 1, 1, ""))
+  params:set_action("MPCgrain_numfile", function(x) numfile=x end)
 
   -- load default pset
   params:read()
@@ -220,7 +228,7 @@ function redraw()
   
   screen.level(8)
   screen.move(93, 6)
-  if runbtn==1 then testo="sampling" elseif trecloop[1]==1 then testo="rec.." elseif trecloop[2]==1 then testo="rec.." elseif trecloop[3]==1 then testo="rec.." else testo="d(u)b" end
+  if runbtn==1 then testo="sampling" elseif trecloop[1]==1 then testo="rec.." elseif trecloop[2]==1 then testo="rec.." elseif trecloop[3]==1 then testo="rec.." elseif writebtn==1 then testo="write" else testo="d(u)b" end
   screen.text(testo)
   
   -- note variation
@@ -389,6 +397,8 @@ function redraw()
     if grp_params[id_grp+1] == "prog" and i==1 then
       screen.level(0) 
     elseif grp_params[id_grp+1] == "mods" and i==2 then
+      screen.level(0)     
+    elseif grp_params[id_grp+1] == "file" and i==2 then
       screen.level(0) 
     else
       screen.level(5)
@@ -410,6 +420,11 @@ function key(n,z)
   elseif n==2 and z==0 and grp_params[id_grp+1] == "sampl" then
     runbtn = 0
     params:set("MPCgrain_run", runbtn)
+  elseif n==2 and z==1 and grp_params[id_grp+1] == "file" then
+    writebtn=1
+    engine.writesamp(numfile)
+  elseif n==2 and z==0 and grp_params[id_grp+1] == "file" then
+    writebtn=0
   elseif n==3 and z==1 and grp_params[id_grp+1] == "trcks" then
     playbtn[trcksel] = (playbtn[trcksel] + 1) % 2
     params:set("MPCgrain_play_" .. trcksel, playbtn[trcksel])
@@ -430,9 +445,9 @@ function enc(n,d)
     id_grp = (id_grp+d) % #grp_params
     id_prm = 0
   elseif n == 2 then
-    params:delta("MPCgrain_" .. all_params[id_grp+1][id_prm+1], d)
-  elseif n == 3 then
     id_prm = (id_prm+d) % #all_params[id_grp+1]
+  elseif n == 3 then
+    params:delta("MPCgrain_" .. all_params[id_grp+1][id_prm+1], d)
   end
   redraw()
 end
