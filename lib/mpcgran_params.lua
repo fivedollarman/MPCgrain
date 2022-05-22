@@ -12,7 +12,7 @@ local specs = {
   ["trgfrq"] = controlspec.new(1, 128, "lin", 1, 16, ""),
   ["rate"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
-  ["transp"] = controlspec.new(-36, 36, "lin", 0, 0, ""),
+  ["transp"] = controlspec.new(-36, 36, "lin", 0.5, 0, ""),
   ["filtcut"] = controlspec.new(12, 139, "lin", 1, 127, ""),
   ["rq"] = controlspec.new(1, 0, "lin", 0, 0, ""),
   ["delr"] = controlspec.new(0, 127, "lin", 1, 0, "ms"),
@@ -100,9 +100,9 @@ function MPCgrain.add_params()
       controlspec = rspecs[rp_name],
       action = function(x) engine[rp_name](x) end
     }
-    params:add_binary("MPCgrain_run", "run", "toggle",1)
-    params:set_action("MPCgrain_run",function(x) if x==1 then engine.run(params:get("MPCgrain_rpos"),x) else engine.runOff() end end)
   end
+  params:add_binary("MPCgrain_run", "run", "toggle",0)
+  params:set_action("MPCgrain_run",function(x) if x==1 then engine.run(params:get("MPCgrain_rpos")) else engine.runOff() end end)
 end
 
 -- a single-purpose triggering command fire a note
