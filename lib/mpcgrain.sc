@@ -19,6 +19,8 @@ Engine_mpcgrain : CroneEngine {
   var buffread;
   var diskwrite;
   var diskread;
+  var rec;
+  var recorder;
   
   var bpm=120;
   var step=1;
@@ -33,14 +35,14 @@ Engine_mpcgrain : CroneEngine {
     sbuff = Buffer.alloc(context.server, context.server.sampleRate * 64, 1);
 	  
     buffread = {
-      arg path = "/home/we/dust/code/MPCgrain/data/reallinn.wav", pos = 0, step=step, bpm=bpm;
-      var bufpos = 48000*((240/bpm)*(1/step)*pos);
+      arg path = "/home/we/dust/audio/tape/0011.wav", pos = 0, step=step, bpm=bpm;
+      var bufpos = context.server.sampleRate*(60/bpm)*step*pos;
       sbuff.readChannel(path, 0, -1, bufpos, channels:[0]);
     };
        
     diskwrite = {
-      arg numsamp=1;
-      sbuff.write("/home/we/dust/code/MPCgrain/data/" ++ "MPCgrain_" ++ numsamp ++ ".wav", sampleFormat: 'int24');
+      arg numsamp=1, path="/home/we/dust/code/MPCgrain/data/", buf=0;
+      buf.write(path ++ "MPCgrain_" ++ numsamp ++ ".wav", headerFormat: "wav", sampleFormat: "int24");
     };
     
     ~pitchmod = Bus.audio(context.server,8);
@@ -62,11 +64,13 @@ Engine_mpcgrain : CroneEngine {
 
 		// Synths
 		
-	  SynthDef(\recorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=0, run=1, loop=1, mode=1;
-    	var input, trigger;
-    	input = SoundIn.ar(0);
+	  SynthDef(\srecorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=1, run=0, loop=0, mode=1;
+    	var input, trigger, kill;
+    	input = Mix.new(SoundIn.ar(0));
     	trigger = Select(mode, [LFPulse.ar(rbpm/(60*rstep)), LFPulse.ar(rbpm/(60*rstep*8))]);
-      RecordBuf.ar(input, rbuf, 48000*((240/rbpm)*rstep*rpos), rlvl, plvl, run, loop, trigger, doneAction: Done.freeSelf);
+      // RecordBuf.ar(input, rbuf, (context.server.sampleRate*(60/rbpm)*rstep*(rpos-1)), rlvl, plvl, run, loop, trigger, doneAction: Done.freeSelf);
+      RecordBuf.ar(input, rbuf, (context.server.sampleRate*(60/rbpm)*rstep*(rpos-1)), rlvl, plvl, run, loop);
+      kill = EnvGen.kr(envelope: Env.asr( 0, 1, 0), gate: run, doneAction: Done.freeSelf);
     }).add;
     
     SynthDef(\lfosmod, {
@@ -122,20 +126,18 @@ Engine_mpcgrain : CroneEngine {
     	sig = RLPF.ar(sig, filtcut.midicps + cutmod.midicps, rq);
     	sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
     	env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
-    	sig = (sig) * EnvGen.kr(env, gate, doneAction: Done.freeSelf);
+    	sig = ((sig+Mix.new(SoundIn.ar(0))) * EnvGen.kr(env, gate, doneAction: Done.freeSelf));
     	Out.ar(0, sig);
    }).add;
-   
 
 		// Commands
 		
 		recparams = Dictionary.newFrom([
-		  \rpos, 0, 
+		  \rpos, 1,
 		  \rlvl, 1, 
 		  \plvl, 0, 
 		  \loop, 1, 
-		  \mode, 1, 
-		  \da, 2;
+		  \mode, 1;
 		]);
 
 		recparams.keysDo({ arg key;
@@ -263,32 +265,37 @@ Engine_mpcgrain : CroneEngine {
 			recGroup.set(\rstep, step);
 		});
 		
-		// run(id, value)
-		this.addCommand(\run, "if", { arg msg;
-			var id = msg[1], run = msg[2];
-			var rec;
-			"sampling".postln;
-			context.server.makeBundle(nil, {
-		   	rec = (id: id, theRec: Synth.new(defName: \recorder, args: [
-		  		\rpos, id-1, \rbuf, sbuff, \run, run, \rbpm, bpm, \rstep, step]
-		  		++ recparams.getPairs, target: recGroup).onFree({ recList.remove(rec); }), run: 1);
-		  	recList.addFirst(rec);
-		  });
+		// run(id)
+		this.addCommand(\run, "i", { arg msg;
+		var id = msg[1];
+		"sampling".postln;
+    recorder = Synth.new(\srecorder, [
+        \rbuf, sbuff.bufnum,
+        \rstep, step,
+        \rbpm, bpm,
+        \rpos, id,
+        \run, 1
+      ] ++ recparams.getPairs, target: rec);
 		});
 		
 		// runOff()
 		this.addCommand(\runOff, "", {
 		  "stop sampling".postln;
-			recGroup.set(\run, 0);
-			recList.do({ arg v; v.run = 0; });
+      recorder.set(\run, 0);
+		});
+		
+		// readsamp(id, value)
+		this.addCommand(\readsamp, "ii", { arg msg;
+			var id = msg[1], numsamp = msg[2];
+			"read".postln;
+			diskread.value(id, numsamp);
 		});
 
 		// writesamp(value)
 		this.addCommand(\writesamp, "i", { arg msg;
 			var numsamp = msg[1];
-			sbuff.readChannel("/home/we/dust/audio/tape/0011.wav", channels:[1]);
 			"write".postln;
-			diskwrite.value(numsamp);
+			diskwrite.value(numsamp, "/home/we/dust/code/MPCgrain/data/", sbuff);
 		});
 
 	}
