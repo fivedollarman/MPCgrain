@@ -383,22 +383,22 @@ function redraw()
   
   --- buttons
   for i=1,3 do
-    if grp_params[id_grp+1] == "midi" and i==1 then
+    if grp_params[id_grp+1] == "trcks" and i==1 then
       screen.level(0) 
-    elseif grp_params[id_grp+1] == "trcks" and i==2 then
+    elseif grp_params[id_grp+1] == "sampl" and i==2 then
       screen.level(0) 
-    elseif grp_params[id_grp+1] == "sampl" and i==3 then
+    elseif grp_params[id_grp+1] == "prog" and i==3 then
       screen.level(0) 
     else
       screen.level(5)
     end
     screen.pixel(104+8+(5*(i-1)), 18)
     screen.stroke()
-    if grp_params[id_grp+1] == "prog" and i==1 then
+    if grp_params[id_grp+1] == "mods" and i==1 then
       screen.level(0) 
-    elseif grp_params[id_grp+1] == "mods" and i==2 then
+    elseif grp_params[id_grp+1] == "midi" and i==2 then
       screen.level(0)     
-    elseif grp_params[id_grp+1] == "file" and i==2 then
+    elseif grp_params[id_grp+1] == "file" and i==3 then
       screen.level(0) 
     else
       screen.level(5)
