@@ -9,17 +9,17 @@ enc 1 -> change pages (MIDI, tracks, samples, program, modulations, files)<br>
 enc 2 -> select value <br>
 enc 3 -> change value <br>
 
-<b>midi</b> | btn 2 -> shuffle note/pad assignations | btn 3 -> reset assignations<br>
+<b>midi</b> | btn 2 -> shuffle note/pad assignments | btn 3 -> reset assignments<br>
 <br>
-parametetrs:
+parameters:
 <ul>
   <li>bpm: general bpm for sync functions</li>
   <li>midi_ch: MPCgrain MIDI receive channel</li>
   <li>in_device: norns input device number</li>
   <li>out_device: norns output device number for passthrough and tracks midi looper</li>
+  <li>bend_rng: MPCgrain's pitchbend range</li>
+  <li>note_1 to note_8: pads MIDI notes</li>
 </ul>
-key 1 save and key 2 load the preset numer chosen with enc 2.
-With enc 3 you can navigate through wavetables while playing, a really nice one knob feature.
 
 <b>MIDI page</b><br>
 On the first section you can select velocity sensitivity, portamento in seconds, pitch bend range in semitones and modwheel controlled lfo speed maximum.
