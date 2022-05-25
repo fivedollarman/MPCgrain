@@ -31,7 +31,7 @@ enc 3 -> change value <br>
 </ul>
 <br>
 
-<b>sampl page</b> | btn 2 -> record audio input starting from selected buffer position (1 to 8) | btn 3 -> play buffer starting from selected buffer position<br>
+<b>sampl page</b> | btn 2 -> record audio input starting from selected buffer position (1 to 8) | btn 3 -> play buffer starting from buffer position<br>
 <i>The MPCgrain audio buffer is max 64 seconds long and it's divided in 8 sync slices assigned to 8 pads</i>
 <br>
 <ul>
@@ -55,6 +55,9 @@ enc 3 -> change value <br>
   <li>trgsel: grain trigger selector (impulse or dust)</li>
   <li>trgfrq: grain trigger synced frequency</li>
   <li>rate: grains' buffer read rate</li>
+  <li>dur: grains duration</li>
+  <li>transp: single grain note transpose</li>
+  <li>filtcut: filter cutoff</li>
 </ul>
 <br>
 
