@@ -11,8 +11,6 @@ enc 3 -> change value <br>
 <br><br>
 
 <b>midi page</b> | btn 2 -> shuffle note/pad assignments | btn 3 -> reset assignments<br>
-<br>
-parameters:
 <ul>
   <li>bpm: general bpm for sync functions</li>
   <li>midi_ch: MPCgrain MIDI receive channel</li>
@@ -24,9 +22,8 @@ parameters:
 <br>
 
 <b>trcks page</b> | btn 2 -> record MIDI input on selected track, with synced stop | btn 3 -> play MIDI recording on selected track<br>
-you can use this page as a three track MIDI looper with your devices
+<i>you can just use this page as a three track MIDI looper with your devices</i>
 <br>
-parameters:
 <ul>
   <li>sel: select track (1, 2, 3)</li>
   <li>num: synced stop recording numerator</li>
@@ -34,9 +31,15 @@ parameters:
 </ul>
 <br>
 
-<b>sampl page</b><br>
-The synth use envelopes to interpolate between the eight waves you choose in this page, in the square you can set in order oscillator 1 interpolation start and end and oscillator 2 interpolation start and end.
-You can add your own waves, they have to be .wav audiofiles made by 512 samples and have to be placed in “wavetables” folder.
+<b>sampl page</b> | btn 2 -> record audio input starting from selected buffer position (1 to 8) | btn 3 -> play buffer starting from selected buffer position<br>
+<i>the MPCgrain audio buffer is max 64 seconds long and it's divided in 8 sync slices assigned to 8 pads</i>
+<br>
+<ul>
+  <li>sel: select track (1, 2, 3)</li>
+  <li>num: synced stop recording numerator</li>
+  <li>den: synced stop recording denominator</li>
+</ul>
+<br>
 
 <b>envelopes page</b><br>
 There are 4 envelopes, one controls amplitude and filter cut, other two navigate through the wavetable and the fourth is a crossfade control between the two waves.
