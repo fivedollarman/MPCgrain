@@ -22,7 +22,7 @@ enc 3 -> change value <br>
 <br>
 
 <b>trcks page</b> | btn 2 -> record MIDI input on selected track, with synced stop | btn 3 -> play MIDI recording on selected track<br>
-<i>you can just use this page as a three track MIDI looper with your devices</i>
+<i>you can just use this page as a three track MIDI looper</i>
 <br>
 <ul>
   <li>sel: select track (1, 2, 3)</li>
@@ -32,12 +32,13 @@ enc 3 -> change value <br>
 <br>
 
 <b>sampl page</b> | btn 2 -> record audio input starting from selected buffer position (1 to 8) | btn 3 -> play buffer starting from selected buffer position<br>
-<i>the MPCgrain audio buffer is max 64 seconds long and it's divided in 8 sync slices assigned to 8 pads</i>
+<i>The MPCgrain audio buffer is max 64 seconds long and it's divided in 8 sync slices assigned to 8 pads</i>
 <br>
 <ul>
-  <li>sel: select track (1, 2, 3)</li>
-  <li>num: synced stop recording numerator</li>
-  <li>den: synced stop recording denominator</li>
+  <li>rpos: recording position, the buffer is divided in 8 slices/positions synced to bpm and assigned to the eight pads</li>
+  <li>rlvl: audio input recording level</li>
+  <li>plvl: overdub recording level</li>
+  <li>loop: loop recording</li>
 </ul>
 <br>
 
