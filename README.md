@@ -42,13 +42,18 @@ enc 3 -> change value <br>
 </ul>
 <br>
 
-<b>envelopes page</b><br>
-There are 4 envelopes, one controls amplitude and filter cut, other two navigate through the wavetable and the fourth is a crossfade control between the two waves.
-In the first line with enc 2 you can choose the envelope to show and edit, with enc 3 you can activate or deactivate editing. Every change in parameters will update the values of the active envelopes (the bright ones), it’s done for fast editing with so many parameters.
-At the end you can choose with enc 2 and 3 the loop and release points.
-
-<b>modulation page</b><br>
-Here we have 6 oscillators detune, similar to supersaw… superwave. The “nF” parameters set the frequency for random amplitude lfos and “/” set the destination amplitude modulation, it may point to table interpolation, crossfading or detune. There’s a lowpass resonant filter too. Just listen what happen and enjoy.
+<b>prog page</b> | btn 2 -> randomize parameters | btn 3 -> restore preset<br>
+<i>The granular sampler paramaters</i>
+<ul>
+  <li>step: slice duration in quarter notes</li>
+  <li>amp: amplitude</li>
+  <li>att: evelope attack</li>
+  <li>rel: envelope release</li>
+  <li>rnode: envelope release point, 1 for normal sustain</li>
+  <li>grainatt: single grain attack</li>
+  <li>grainrel: single grain release</li>
+</ul>
+<br>
 
 # installation
 Install from Matron: <code>;install https://github.com/fivedollarman/bidiwave</code>
