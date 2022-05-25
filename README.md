@@ -91,5 +91,5 @@ enc 3 -> change value <br>
 <br>
 
 # installation
-Install from Matron: <code>;install https://github.com/fivedollarman/bidiwave</code>
+Install from Matron: <code>;install https://github.com/fivedollarman/MPCgrain</code>
 
