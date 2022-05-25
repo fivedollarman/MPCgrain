@@ -52,6 +52,9 @@ enc 3 -> change value <br>
   <li>rnode: envelope release point, 1 for normal sustain</li>
   <li>grainatt: single grain attack</li>
   <li>grainrel: single grain release</li>
+  <li>trgsel: grain trigger selector (impulse or dust)</li>
+  <li>trgfrq: grain trigger synced frequency</li>
+  <li>rate: grains' buffer read rate</li>
 </ul>
 <br>
 
