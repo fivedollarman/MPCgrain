@@ -7,6 +7,8 @@ local specs = {
   ["amp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
   ["att"] = controlspec.new(0, 4, "lin", 0.05, 0, "s"),
   ["rel"] = controlspec.new(0, 8, "lin", 0.1, 1, "s"),
+  ["grainatt"] = controlspec.new(0, 1, "lin", 0.01, 0.125, "s"),
+  ["grainrel"] = controlspec.new(0, 1, "lin", 0.01, 0.5, "s"),
   ["rnode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
   ["trgsel"] = controlspec.new(0, 1, "lin", 1, 0, ""),
   ["trgfrq"] = controlspec.new(1, 128, "lin", 1, 16, ""),
@@ -14,23 +16,25 @@ local specs = {
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
   ["transp"] = controlspec.new(-36, 36, "lin", 0.5, 0, ""),
   ["filtcut"] = controlspec.new(12, 139, "lin", 1, 127, ""),
-  ["rq"] = controlspec.new(1, 0, "lin", 0, 0, ""),
+  ["rq"] = controlspec.new(0, 1, "lin", 0, 0, ""),
   ["delr"] = controlspec.new(0, 127, "lin", 1, 0, "ms"),
   ["dell"] = controlspec.new(0, 127, "lin", 1, 0, "ms"),
   ["drywet"] = controlspec.new(0, 1, "lin", 0, 0, ""),
   ["pan"] = controlspec.PAN
 }
 
-local param_names = {"step", "amp", "att", "rel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+local param_names = {"step", "amp", "att", "rel", "grainatt", "grainrel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 
 local mspecs = {
-  ["mamp"] = controlspec.new(0, 1, 'lin', 0, 1, ""),
-  ["matt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
-  ["mrel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
-  ["mrnode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
+  ["lfoatt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
+  ["lforel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
+  ["lfornode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
   ["lfof"] = controlspec.new(0, 4, "lin", 0, 0, ""),
   ["lfoph"] = controlspec.new(0, 3.14, "lin", 0, 0, ""),
-  ["mfiltcut"] = controlspec.new(1, 128, "lin", 1, 1, ""),
+  ["noiseatt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
+  ["noiserel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
+  ["noisernode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
+  ["noisecut"] = controlspec.new(1, 128, "lin", 1, 1, ""),
   ["pitchlfo"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["durlfo"] = controlspec.new(0, 1, "lin", 0, 1, ""),
   ["trigflfo"] = controlspec.new(0, 1, "lin", 0, 1, ""),
@@ -50,7 +54,7 @@ local mspecs = {
   ["masterm"] = controlspec.new(0, 1, "lin", 0, 1, "")
 }
 
-local mparam_names = {"mamp", "matt", "mrel", "mrnode", "lfof", "lfoph", "mfiltcut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise", "masterm"}
+local mparam_names = {"lfoatt", "lforel", "lfornode", "lfof", "lfoph", "noiseatt", "noiserel", "noisernode", "noisecut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "panlfo", "delllfo", "delrlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "pannoise", "dellnoise", "delrnoise", "masterm"}
 
 local rspecs = {
   ["rpos"] = controlspec.new(1, 8, "lin", 1, 1, ""),
@@ -64,7 +68,8 @@ local rparam_names = {"rpos", "rlvl", "plvl", "loop", "mode"}
 
 -- initialize parameters:
 function MPCgrain.add_params()
-  params:add_group("MPCgrain", #param_names+1)
+  
+  params:add_group("MPCgrainprog", #param_names+1)
   params:add_separator("prog")
   for i = 1,#param_names do
     local p_name = param_names[i]
