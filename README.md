@@ -67,7 +67,7 @@ enc 3 -> change value <br>
 <br>
 
 <b>mods page</b> | btn 2 -> randomize parameters | btn 3 -> restore preset<br>
-<i>The granular sampler paramaters</i>
+<i>The granular sampler modulations</i>
 <ul>
   <li>lfoatt: lfo envelope attack</li>
   <li>lforel: lfo envelope release</li>
@@ -84,19 +84,9 @@ enc 3 -> change value <br>
 <br>
 
 <b>file page</b> | btn 2 -> save entire buffer to an audiofile | btn 3 -> read an audiofile to the buffer read position/slice<br>
-<i>The granular sampler paramaters</i>
 <ul>
-  <li>lfoatt: lfo envelope attack</li>
-  <li>lforel: lfo envelope release</li>
-  <li>lfornode: lfo envelope release point</li>
-  <li>lfof: lfo frequency</li>
-  <li>lfoph: lfo phase</li>
-  <li>noiseatt: noise envelope attack</li>
-  <li>noiserel: noise envelope release</li>
-  <li>noisernode: noise envelope release point</li>
-  <li>noisecut: noise lowpass cut</li>
-  <li>pitchlfo to panlfo: parameter modulation amplitude from lfo source</li>
-  <li>pitchnoise to pannoise: parameter modulation amplitude from noise source</li>
+  <li>readpos: buffer read position</li>
+  <li>numfile: write name number for the saved audio file</li>
 </ul>
 <br>
 
