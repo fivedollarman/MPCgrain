@@ -16,15 +16,20 @@ Engine_mpcgrain : CroneEngine {
   var modparams;
 	
   var sbuff;
+  var wbuff;
+  var winenv;
   var buffread;
   var diskwrite;
   var diskread;
   var rec;
   var recorder;
+  var grainwindow;
   
   var bpm=120;
   var step=1;
   var pitchBendRatio=1;
+  var watt=0.125;
+  var wrel=0.5;
 	
   *new { arg context, doneCallback;
 	^super.new(context, doneCallback);
@@ -33,9 +38,16 @@ Engine_mpcgrain : CroneEngine {
   alloc {
 	
     sbuff = Buffer.alloc(context.server, context.server.sampleRate * 64, 1);
+    
+    grainwindow = {
+      arg watt=0.125, wrel=0.5;
+      winenv = Env([0, 1, 0], [watt, wrel], [8, -8]);
+      wbuff = Buffer.sendCollection(context.server, winenv.discretize, 1);
+    };
+    grainwindow.value(0.125,0.5);
 	  
-    buffread = {
-      arg path = "/home/we/dust/audio/tape/0011.wav", pos = 0, step=step, bpm=bpm;
+    diskread = {
+      arg pos = 0, path = "/home/we/dust/audio/tape/0011.wav", step=step, bpm=bpm;
       var bufpos = context.server.sampleRate*(60/bpm)*step*pos;
       sbuff.readChannel(path, 0, -1, bufpos, channels:[0]);
     };
@@ -74,13 +86,16 @@ Engine_mpcgrain : CroneEngine {
     }).add;
     
     SynthDef(\lfosmod, {
-    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, mamp=1, matt=0, mrel=1, mrnode=1, lfof=1, lfoph=0, mfiltcut=127,
-	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
-    	var sigenv, siglfo, signoise, env;
-      env = Env.new([0,mamp*(mvel/127),0],[matt,mrel], releaseNode: mrnode);
-    	sigenv = EnvGen.kr(env, mgate, doneAction: Done.freeSelf);
-    	siglfo = sigenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
-    	signoise = sigenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), mfiltcut.midicps)));
+    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, lfoatt=0, lforel=1, lfornode=1, lfof=1, lfoph=0, noiseatt=0, noiserel=1, noisernode=1, noisecut=127,
+	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, 
+	      pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
+    	var lfoenv, noiseenv, siglfo, signoise, envlfo, envnoise;
+      envlfo = Env.new([0,(mvel/127),0],[lfoatt,lforel], releaseNode: lfornode);
+      envnoise = Env.new([0,(mvel/127),0],[noiseatt,noiserel], releaseNode: noisernode);
+    	lfoenv = EnvGen.kr(envlfo, mgate, doneAction: Done.freeSelf);
+    	noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
+    	siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
+    	signoise = noiseenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), noisecut.midicps, mul: 0.5, add: 0.5)));
     	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
     	Out.ar(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
     	Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
@@ -94,7 +109,7 @@ Engine_mpcgrain : CroneEngine {
    SynthDef(\grainsampler, {
     	arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
     	  rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
-      	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0;
+      	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
     	var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
     	tfmod = In.ar(~trigfreqmod.index + pos);
     	durmod = In.ar(~durationmod.index + pos);
@@ -121,6 +136,7 @@ Engine_mpcgrain : CroneEngine {
     		grainpos+(grainpos*posmod),
     		2,
 	    	pan+panmod,
+	    	envbuf,
 	    	maxGrains: 64
 	    );
     	sig = RLPF.ar(sig, filtcut.midicps + cutmod.midicps, rq);
@@ -162,7 +178,8 @@ Engine_mpcgrain : CroneEngine {
       \rq, 1, 
       \delr, 0.0225, 
       \dell, 0.0127, 
-      \drywet, 0;
+      \drywet, 0,
+      \envbuf, wbuff;
 		]);
 		
 		padparams.keysDo({ arg key;
@@ -173,13 +190,15 @@ Engine_mpcgrain : CroneEngine {
 		});
 		
 		modparams = Dictionary.newFrom([
-			\mamp, 1, 
-			\matt, 0, 
-			\mrel, 1, 
-			\mrnode, 1, 
+			\lfoatt, 0, 
+			\lforel, 1, 
+			\lfornode, 1, 
+			\noiseatt, 0, 
+			\noiserel, 1, 
+			\noisernode, 1, 
 			\lfof, 1, 
 			\lfoph, 0, 
-			\mfiltcut, 127,
+			\noisecut, 127,
 	    \pitchlfo, 0, 
 	    \durlfo, 0, 
 	    \trigflfo, 0, 
@@ -284,11 +303,11 @@ Engine_mpcgrain : CroneEngine {
       recorder.set(\run, 0);
 		});
 		
-		// readsamp(id, value)
-		this.addCommand(\readsamp, "ii", { arg msg;
-			var id = msg[1], numsamp = msg[2];
+		// readsamp(id, path)
+		this.addCommand(\readsamp, "is", { arg msg;
+			var id = msg[1], path = msg[2];
 			"read".postln;
-			diskread.value(id, numsamp);
+			diskread.value(id, path, step, bpm);
 		});
 
 		// writesamp(value)
@@ -297,6 +316,19 @@ Engine_mpcgrain : CroneEngine {
 			"write".postln;
 			diskwrite.value(numsamp, "/home/we/dust/code/MPCgrain/data/", sbuff);
 		});
+
+		// grainatt(value)
+		this.addCommand(\grainatt, "f", { arg msg;
+			watt = msg[1];
+			grainwindow.value(watt,wrel);
+		});
+		
+		// grainrel(value)
+		this.addCommand(\grainrel, "f", { arg msg;
+			wrel = msg[1];
+			grainwindow.value(watt,wrel);
+		});
+
 
 	}
 
