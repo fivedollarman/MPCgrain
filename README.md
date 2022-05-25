@@ -45,6 +45,3 @@ Here we have 6 oscillators detune, similar to supersaw… superwave. The “nF�
 # installation
 Install from Matron: <code>;install https://github.com/fivedollarman/bidiwave</code>
 
-# notes
-The very first time you open it you have to set envelopes 
-
