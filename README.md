@@ -58,6 +58,11 @@ enc 3 -> change value <br>
   <li>dur: grains duration</li>
   <li>transp: single grain note transpose</li>
   <li>filtcut: filter cutoff</li>
+  <li>rq: filter resonance</li>
+  <li>delr: delay of right channel in ms</li>
+  <li>dell: delay of left channel in ms</li>
+  <li>drywet: fade from dry singnal to delayed signal</li>
+  <li>pan</li>
 </ul>
 <br>
 
