@@ -8,6 +8,7 @@ norns, MIDI
 enc 1 -> change pages (MIDI, tracks, samples, program, modulations, files)<br>
 enc 2 -> select value <br>
 enc 3 -> change value <br>
+<br><br>
 
 <b>midi page</b> | btn 2 -> shuffle note/pad assignments | btn 3 -> reset assignments<br>
 <br>
@@ -20,8 +21,10 @@ parameters:
   <li>bend_rng: MPCgrain's pitchbend range</li>
   <li>note_1 to note_8: pads MIDI notes</li>
 </ul>
+<br>
 
 <b>trcks page</b> | btn 2 -> record MIDI input on selected track, with synced stop | btn 3 -> play MIDI recording on selected track<br>
+you can use this page as a three track MIDI looper with your devices
 <br>
 parameters:
 <ul>
@@ -29,8 +32,9 @@ parameters:
   <li>num: synced stop recording numerator</li>
   <li>den: synced stop recording denominator</li>
 </ul>
+<br>
 
-<b>wtables page</b><br>
+<b>sampl page</b><br>
 The synth use envelopes to interpolate between the eight waves you choose in this page, in the square you can set in order oscillator 1 interpolation start and end and oscillator 2 interpolation start and end.
 You can add your own waves, they have to be .wav audiofiles made by 512 samples and have to be placed in “wavetables” folder.
 
