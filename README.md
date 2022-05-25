@@ -9,7 +9,7 @@ enc 1 -> change pages (MIDI, tracks, samples, program, modulations, files)<br>
 enc 2 -> select value <br>
 enc 3 -> change value <br>
 
-<b>midi</b> | btn 2 -> shuffle note/pad assignments | btn 3 -> reset assignments<br>
+<b>midi page</b> | btn 2 -> shuffle note/pad assignments | btn 3 -> reset assignments<br>
 <br>
 parameters:
 <ul>
@@ -21,10 +21,14 @@ parameters:
   <li>note_1 to note_8: pads MIDI notes</li>
 </ul>
 
-<b>MIDI page</b><br>
-On the first section you can select velocity sensitivity, portamento in seconds, pitch bend range in semitones and modwheel controlled lfo speed maximum.
-On the second section you can activate an arpeggiator in three modes, “play” iterates in the order you play notes, up goes up and down goes on its way too. With “freez” the arpeggio continue playing in background, if selected while holding notes.
-You can select an action (octave up or step skip) the arpeggiator does every n cycles and another action the arpeggiator does every n steps (skip step or muting), so it’s a little algo style arpeggiator.
+<b>trcks page</b> | btn 2 -> record MIDI input on selected track, with synced stop | btn 3 -> play MIDI recording on selected track<br>
+<br>
+parameters:
+<ul>
+  <li>sel: select track (1, 2, 3)</li>
+  <li>num: synced stop recording numerator</li>
+  <li>den: synced stop recording denominator</li>
+</ul>
 
 <b>wtables page</b><br>
 The synth use envelopes to interpolate between the eight waves you choose in this page, in the square you can set in order oscillator 1 interpolation start and end and oscillator 2 interpolation start and end.
