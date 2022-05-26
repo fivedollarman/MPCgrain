@@ -57,8 +57,8 @@ Engine_mpcgrain : CroneEngine {
       buf.write(path ++ "MPCgrain_" ++ numsamp ++ ".wav", headerFormat: "wav", sampleFormat: "int24");
     };
     
-    ~pitchmod = Bus.audio(context.server,8);
-    ~durationmod = Bus.audio(context.server,8);
+    ~pitchmod = Bus.control(context.server,8);
+    ~durationmod = Bus.control(context.server,8);
     ~trigfreqmod = Bus.audio(context.server,8);
     ~positionmod = Bus.audio(context.server,8);
     ~filtcutmod = Bus.control(context.server,8);
@@ -76,11 +76,9 @@ Engine_mpcgrain : CroneEngine {
 
 		// Synths
 		
-	  SynthDef(\srecorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=1, run=0, loop=0, mode=1;
+	  SynthDef(\srecorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=1, run=0, loop=0;
     	var input, trigger, kill;
     	input = Mix.new(SoundIn.ar(0));
-    	trigger = Select(mode, [LFPulse.ar(rbpm/(60*rstep)), LFPulse.ar(rbpm/(60*rstep*8))]);
-      // RecordBuf.ar(input, rbuf, (context.server.sampleRate*(60/rbpm)*rstep*(rpos-1)), rlvl, plvl, run, loop, trigger, doneAction: Done.freeSelf);
       RecordBuf.ar(input, rbuf, (context.server.sampleRate*(60/rbpm)*rstep*(rpos-1)), rlvl, plvl, run, loop);
       kill = EnvGen.kr(envelope: Env.asr( 0, 1, 0), gate: run, doneAction: Done.freeSelf);
     }).add;
@@ -96,8 +94,8 @@ Engine_mpcgrain : CroneEngine {
     	noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
     	siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
     	signoise = noiseenv * (1 - (TwoPole.kr(WhiteNoise.kr(1), noisecut.midicps, mul: 0.5, add: 0.5)));
-    	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
-    	Out.ar(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
+    	Out.kr(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
+    	Out.kr(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
     	Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
     	Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
      	Out.kr(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
@@ -112,8 +110,8 @@ Engine_mpcgrain : CroneEngine {
       	 filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
     	var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
     	tfmod = In.ar(~trigfreqmod.index + pos);
-    	durmod = In.ar(~durationmod.index + pos);
-    	pitchmod = In.ar(~pitchmod.index + pos);
+    	durmod = In.kr(~durationmod.index + pos);
+    	pitchmod = In.kr(~pitchmod.index + pos);
     	posmod = In.ar(~positionmod.index + pos);
     	panmod = In.kr(~panmod.index + pos);
     	cutmod = In.kr(~filtcutmod.index + pos);
@@ -125,8 +123,8 @@ Engine_mpcgrain : CroneEngine {
     	grainpos = Phasor.ar(
 	    	0,
 	    	(bpm/60)*(1/step),
-	    	(((60/bpm)*step*pos)/128) + ((((60/bpm)*step)/128)*posmod),
-	    	(((60/bpm)*step*(pos+1)*rate)/128) + ((((60/bpm)*step)/128)*posmod)
+	    	(((60/bpm)*step*pos)) + ((((60/bpm)*step))*posmod),
+	    	(((60/bpm)*step*(pos+1)*rate)) + ((((60/bpm)*step))*posmod)
     	);
 	    sig = GrainBuf.ar(2,
 	    	trigger,
@@ -152,8 +150,7 @@ Engine_mpcgrain : CroneEngine {
 		  \rpos, 1,
 		  \rlvl, 1, 
 		  \plvl, 0, 
-		  \loop, 1, 
-		  \mode, 1;
+		  \loop, 1;
 		]);
 
 		recparams.keysDo({ arg key;
