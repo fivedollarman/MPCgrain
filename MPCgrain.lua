@@ -17,6 +17,7 @@ local in_device
 local out_device
 local msg 
 local midiplay
+local note
 local pad = {}
 local padreset = {}
 local padon = {0,0,0,0,0,0,0,0}
@@ -64,6 +65,7 @@ end
 function midi_act(msg)
       -- Note off
     if msg.type == "note_off" then
+      note = msg.note
       for i=1,#pad do
         if msg.note == pad[i] then
           engine.noteOff(i)
@@ -74,6 +76,7 @@ function midi_act(msg)
       
     -- Note on
     elseif msg.type == "note_on" then
+      note = msg.note
       for i=1,#pad do
         if msg.note == pad[i] then
           engine.noteOn(i, msg.note, msg.vel)
@@ -459,7 +462,7 @@ function key(n,z)
     params:set("MPCgrain_play_" .. trcksel, playbtn[trcksel])
   elseif n==3 and z==1 and grp_params[id_grp+1] == "sampl" then
     padbtn = (padbtn + 1) % 2
-    engine.noteOn(params:get("MPCgrain_rpos"), note, 127)
+    engine.noteOn(params:get("MPCgrain_rpos"), 0, 127)
     padon[params:get("MPCgrain_rpos")]=1
   elseif n==3 and z==0 and grp_params[id_grp+1] == "sampl" then
     padbtn = (padbtn + 1) % 2
