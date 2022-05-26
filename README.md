@@ -1,5 +1,6 @@
 # MPCgrain
 granular Music Production Center
+https://youtu.be/vawC8hcGftA
 
 # requirements
 norns, MIDI
