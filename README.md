@@ -1,5 +1,5 @@
 # MPCgrain
-granular Music Production Center
+granular Music Production Center for monome norns
 https://youtu.be/vawC8hcGftA
 
 # requirements
