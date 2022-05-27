@@ -7,7 +7,7 @@ norns, MIDI
 
 # documentation
 enc 1 -> change pages (MIDI, tracks, samples, program, modulations, files)<br>
-enc 2 -> select value <br>
+enc 2 -> select parameter <br>
 enc 3 -> change value <br>
 <br><br>
 
@@ -55,20 +55,20 @@ enc 3 -> change value <br>
   <li>grainrel: single grain release</li>
   <li>trgsel: grain trigger selector (impulse or dust)</li>
   <li>trgfrq: grain trigger synced frequency</li>
-  <li>rate: grains' buffer read rate</li>
+  <li>rate: buffer read rate</li>
   <li>dur: grains duration</li>
   <li>transp: single grain note transpose</li>
   <li>filtcut: filter cutoff</li>
   <li>rq: filter resonance</li>
   <li>delr: delay of right channel in ms</li>
   <li>dell: delay of left channel in ms</li>
-  <li>drywet: fade from dry singnal to delayed signal</li>
+  <li>drywet: fade from dry to delayed signal</li>
   <li>pan</li>
 </ul>
 <br>
 
 <b>mods page</b> | btn 2 -> randomize parameters | btn 3 -> restore preset<br>
-<i>The granular sampler modulations</i>
+<i>The granular sampler modulations, modwheel is assigned to a master modulation amplitude</i>
 <ul>
   <li>lfoatt: lfo envelope attack</li>
   <li>lforel: lfo envelope release</li>
