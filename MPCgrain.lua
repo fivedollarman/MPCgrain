@@ -57,12 +57,9 @@ local function midi_event(data)
   msg = midi.to_msg(data)
   record_midi()
   midi_act(msg)
-  print("channel"..msg.ch)
 end
 
 function midi_act(msg)
-    
-    print(msg.ch)
     
     local channel_param = params:get("MPCgrain_midi_ch")
     
