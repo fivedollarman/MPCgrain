@@ -120,7 +120,7 @@ Engine_mpcgrain : CroneEngine {
     	trigger = Select.ar(trgsel,
     		[Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]
 	 		);
-    	grainpos = Phasor.ar(0, rate / context.server.sampleRate, ((60/bpm)*step*(pos-1))/64, ((60/bpm)*step*pos)/64);
+    	grainpos = Phasor.ar(0, rate*(step/8) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/64, ((60/bpm)*step*pos)/64);
 	    sig = GrainBuf.ar(2,
 	    	trigger,
 	    	(((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
