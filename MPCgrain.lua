@@ -62,7 +62,7 @@ end
 function midi_act(msg)
     out_device:note_off(msg.note, 0, msg.ch)
     out_device:note_on(msg.note, msg.vel, msg.ch)
-    out_device:pitchbend(msg.val, msg.ch, ch)
+    out_device:pitchbend(msg.val, msg.ch)
     out_device:cc(msg.cc, msg.val, msg.ch)
     
     local channel_param = params:get("MPCgrain_midi_ch")
