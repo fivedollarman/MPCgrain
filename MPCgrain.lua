@@ -88,7 +88,7 @@ function midi_act(msg)
     -- Pitch bend
     elseif msg.type == "pitchbend" then
       local bend_st = (util.round(msg.val / 2)) / 8192 * 2 -1 
-      local bend_range = params:get("bend_range")
+      local bend_range = params:get("MPCgrain_bend_rng")
       engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
       out_device:pitchbend(msg.val, msg.ch, ch)
       
