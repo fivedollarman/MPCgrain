@@ -57,53 +57,62 @@ local function midi_event(data)
   msg = midi.to_msg(data)
   record_midi()
   midi_act(msg)
+  print("channel"..msg.ch)
 end
 
 function midi_act(msg)
-    out_device:note_off(msg.note, 0, msg.ch)
-    out_device:note_on(msg.note, msg.vel, msg.ch)
-    out_device:pitchbend(msg.val, msg.ch)
-    out_device:cc(msg.cc, msg.val, msg.ch)
+    
+    print(msg.ch)
     
     local channel_param = params:get("MPCgrain_midi_ch")
-    if msg.ch == channel_param then
+    
 
       -- Note off
     if msg.type == "note_off" then
       note = msg.note
-      for i=1,#pad do
-        if msg.note == pad[i] then
-          engine.noteOff(i)
-          padon[i]=0
+      if msg.ch == channel_param then
+        for i=1,#pad do
+          if msg.note == pad[i] then
+            engine.noteOff(i)
+            padon[i]=0
+          end
         end
       end
+      out_device:note_off(msg.note, 0, msg.ch)
       
     -- Note on
     elseif msg.type == "note_on" then
       note = msg.note
-      for i=1,#pad do
-        if msg.note == pad[i] then
-          engine.noteOn(i, msg.note, msg.vel)
-          padon[i]=1
+      if msg.ch == channel_param then
+        for i=1,#pad do
+          if note == pad[i] then
+            engine.noteOn(i, note, msg.vel)
+            padon[i]=1
+          end
         end
       end
+      out_device:note_on(note, msg.vel, msg.ch)
       
     -- Pitch bend
     elseif msg.type == "pitchbend" then
       local bend_st = (util.round(msg.val / 2)) / 8192 * 2 -1 
       local bend_range = params:get("MPCgrain_bend_rng")
-      engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
+      if msg.ch == channel_param then
+        engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
+      end
+      out_device:pitchbend(msg.val, msg.ch)
       
     -- CC
     elseif msg.type == "cc" then
       -- Mod wheel
       if msg.cc == 1 then
         -- print("modw " .. msg.val)
-        params:set("MPCgrain_masterm", msg.val / 127)
+        if msg.ch == channel_param then
+          params:set("MPCgrain_masterm", msg.val / 127)
+        end 
       end
+      out_device:cc(msg.cc, msg.val, msg.ch)
     end
-    
-  end
     
   redraw()
 end
