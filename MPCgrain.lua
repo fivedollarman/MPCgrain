@@ -56,13 +56,18 @@ all_params[6] = {"readpos", "numfile"}
 local function midi_event(data)
   msg = midi.to_msg(data)
   record_midi()
-  local channel_param = params:get("MPCgrain_midi_ch")
-  if channel_param == 1 or (channel_param > 1 and msg.ch == channel_param - 1) then
-    midi_act(msg)
-  end
+  midi_act(msg)
 end
 
 function midi_act(msg)
+    out_device:note_off(msg.note, 0, msg.ch)
+    out_device:note_on(msg.note, msg.vel, msg.ch)
+    out_device:pitchbend(msg.val, msg.ch, ch)
+    out_device:cc(msg.cc, msg.val, msg.ch)
+    
+    local channel_param = params:get("MPCgrain_midi_ch")
+    if msg.ch == channel_param then
+
       -- Note off
     if msg.type == "note_off" then
       note = msg.note
@@ -72,7 +77,6 @@ function midi_act(msg)
           padon[i]=0
         end
       end
-      out_device:note_off(msg.note, 0, msg.ch)
       
     -- Note on
     elseif msg.type == "note_on" then
@@ -83,14 +87,12 @@ function midi_act(msg)
           padon[i]=1
         end
       end
-      out_device:note_on(msg.note, msg.vel, msg.ch)
       
     -- Pitch bend
     elseif msg.type == "pitchbend" then
       local bend_st = (util.round(msg.val / 2)) / 8192 * 2 -1 
       local bend_range = params:get("MPCgrain_bend_rng")
       engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
-      out_device:pitchbend(msg.val, msg.ch, ch)
       
     -- CC
     elseif msg.type == "cc" then
@@ -99,8 +101,9 @@ function midi_act(msg)
         -- print("modw " .. msg.val)
         params:set("MPCgrain_masterm", msg.val / 127)
       end
-      out_device:cc(msg.cc, msg.val, msg.ch)
     end
+    
+  end
     
   redraw()
 end
@@ -202,6 +205,7 @@ function init()
   params:add{type = "number", id = "MPCgrain_out_device", name = "MIDI out Device", min = 1, max = 4, default = 1, action = function(value)
     out_device.event = nil
     out_device = midi.connect(value)
+    out_device.event = midi_event
   end}
   in_device = midi.connect(1)
   params:add{type = "number", id = "MPCgrain_in_device", name = "MIDI in Device", min = 1, max = 4, default = 1, action = function(value)
