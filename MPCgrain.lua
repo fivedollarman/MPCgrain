@@ -205,7 +205,6 @@ function init()
   params:add{type = "number", id = "MPCgrain_out_device", name = "MIDI out Device", min = 1, max = 4, default = 1, action = function(value)
     out_device.event = nil
     out_device = midi.connect(value)
-    out_device.event = midi_event
   end}
   in_device = midi.connect(1)
   params:add{type = "number", id = "MPCgrain_in_device", name = "MIDI in Device", min = 1, max = 4, default = 1, action = function(value)
