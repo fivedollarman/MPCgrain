@@ -27,7 +27,7 @@ Engine_mpcgrain : CroneEngine {
   
   var bpm=120;
   var step=1;
-  var pitchBendRatio=1;
+  var pitchBendRatio=0;
   var watt=0.125;
   var wrel=0.5;
 	
@@ -125,7 +125,7 @@ Engine_mpcgrain : CroneEngine {
 	    	trigger,
 	    	(((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
 	    	buf,
-    		transp.midiratio + pitchmod.midiratio + pitchBendRatio,
+    		transp.midiratio + pitchmod + pitchBendRatio,
     		grainpos+(grainpos*posmod),
     		2,
 	    	pan+panmod,
