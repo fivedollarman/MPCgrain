@@ -2,9 +2,9 @@
 --                     Production 
 --       d('u')b        Center
 -- 1.0.0 @marcocinque 
--- llllllll.co/t/
--- enc1 > pages
---
+-- https://llllllll.co/t/mpcgrain
+-- L L L L 
+-- L L L L
 
 engine.name = "mpcgrain"
 MPCgrain = include('MPCgrain/lib/mpcgrain_params')
