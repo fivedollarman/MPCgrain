@@ -2,9 +2,9 @@
 --                     Production 
 --       d('u')b        Center
 -- 1.0.0 @marcocinque 
--- https://llllllll.co/t/mpcgrain
--- L L L L 
--- L L L L
+-- llllllll.co/t/
+-- enc1 > pages
+--
 
 engine.name = "mpcgrain"
 MPCgrain = include('MPCgrain/lib/mpcgrain_params')
@@ -74,8 +74,9 @@ function midi_act(msg)
             padon[i]=0
           end
         end
+      else
+        out_device:note_off(msg.note, 0, msg.ch)
       end
-      out_device:note_off(msg.note, 0, msg.ch)
       
     -- Note on
     elseif msg.type == "note_on" then
@@ -87,8 +88,9 @@ function midi_act(msg)
             padon[i]=1
           end
         end
+      else
+        out_device:note_on(note, msg.vel, msg.ch)
       end
-      out_device:note_on(note, msg.vel, msg.ch)
       
     -- Pitch bend
     elseif msg.type == "pitchbend" then
@@ -96,8 +98,9 @@ function midi_act(msg)
       local bend_range = params:get("MPCgrain_bend_rng")
       if msg.ch == channel_param then
         engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
+      else
+        out_device:pitchbend(msg.val, msg.ch)
       end
-      out_device:pitchbend(msg.val, msg.ch)
       
     -- CC
     elseif msg.type == "cc" then
@@ -107,8 +110,9 @@ function midi_act(msg)
         if msg.ch == channel_param then
           params:set("MPCgrain_masterm", msg.val / 127)
         end 
+      else
+        out_device:cc(msg.cc, msg.val, msg.ch)
       end
-      out_device:cc(msg.cc, msg.val, msg.ch)
     end
     
   redraw()
