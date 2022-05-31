@@ -130,7 +130,7 @@ Engine_mpcgrain : CroneEngine {
     		2,
 	    	pan+panmod,
 	    	envbuf,
-	    	maxGrains: 128
+	    	maxGrains: 32
 	    );
     	sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq);
     	sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
