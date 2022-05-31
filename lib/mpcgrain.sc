@@ -78,7 +78,7 @@ Engine_mpcgrain : CroneEngine {
 		
 	  SynthDef(\srecorder, { arg rpos=0, rbuf=0, rstep=step, rbpm=bpm, rlvl=1, plvl=1, run=0, loop=0;
     	var input, trigger, kill;
-    	input = Mix.new(SoundIn.ar(0));
+    	input = Mix.new(SoundIn.ar(0))+Mix.new(SoundIn.ar(1));
       RecordBuf.ar(input, rbuf, (context.server.sampleRate*(60/rbpm)*rstep*(rpos-1)), rlvl, plvl, run, loop);
       kill = EnvGen.kr(envelope: Env.asr( 0, 1, 0), gate: run, doneAction: Done.freeSelf);
     }).add;
