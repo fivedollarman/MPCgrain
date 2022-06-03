@@ -15,6 +15,8 @@ local specs = {
   ["rate"] = controlspec.new(0, 2, "lin", 0, 1, ""),
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
   ["transp"] = controlspec.new(-36, 36, "lin", 0.5, 0, ""),
+  ["samplerate"] = controlspec.new(0, 48, "lin", 0.5, 48, "k"),
+  ["bits"] = controlspec.new(1, 24, "lin", 0.2, 24, ""),
   ["filtcut"] = controlspec.new(8, 127, "lin", 1, 127, ""),
   ["rq"] = controlspec.new(0, 1, "lin", 0, 0, ""),
   ["delr"] = controlspec.new(0, 127, "lin", 1, 0, "ms"),
@@ -23,7 +25,7 @@ local specs = {
   ["pan"] = controlspec.PAN
 }
 
-local param_names = {"step", "amp", "att", "rel", "grainatt", "grainrel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+local param_names = {"step", "amp", "att", "rel", "grainatt", "grainrel", "rnode", "trgsel", "trgfrq", "rate", "dur", "transp", "samplerate", "bits", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 
 local mspecs = {
   ["lfoatt"] = controlspec.new(0, 4, "lin", 0.05, 1, "s"),
