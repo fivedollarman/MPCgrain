@@ -43,8 +43,8 @@ local selected_file = 'none'
 
 local id_grp = 0
 local id_prm = 0
-local all_params = {}
 local grp_params = {"midi", "trcks", "sampl", "prog", "mods", "file"}
+local all_params = {}
 all_params[1] = {"bpm", "midi_ch", "in_device", "out_device", "bend_rng", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
 all_params[2] = {"sel", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop"}
@@ -62,7 +62,6 @@ end
 function midi_act(msg)
     
     local channel_param = params:get("MPCgrain_midi_ch")
-    
 
       -- Note off
     if msg.type == "note_off" then
@@ -153,6 +152,7 @@ end
 
 function recloop(num, den, i)
   trecloop[i]=1
+  track[i]:clear()
   track[i]:rec_start()
   while trecloop[i]==1 do
     print("rec sync")
