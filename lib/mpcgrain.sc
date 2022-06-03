@@ -130,7 +130,7 @@ Engine_mpcgrain : CroneEngine {
         envbuf,
         maxGrains: 32 
       );
-      sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq);
+      sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq).tanh;
       sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
       env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
       sig = ((sig+Mix.new(SoundIn.ar(0))) * EnvGen.kr(env, gate, doneAction: Done.freeSelf));
