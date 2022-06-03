@@ -216,117 +216,117 @@ Engine_mpcgrain : CroneEngine {
     });
 
     // noteOn(id, note, vel)
-      this.addCommand(\noteOn, "iff", { arg msg;
-        var id = msg[1], note = msg[2], vel = msg[3];
-        var mpc, mod;
-        ("playing " ++ id).postln;
-        context.server.makeBundle(nil, {
-          mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
-            \buf, sbuff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
-            ++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
-          padList.addFirst(mpc);
-          mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
-            \mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), mgate: 1);
-          modList.addFirst(mod);
-        });
+    this.addCommand(\noteOn, "iff", { arg msg;
+      var id = msg[1], note = msg[2], vel = msg[3];
+      var mpc, mod;
+      ("playing " ++ id).postln;
+      context.server.makeBundle(nil, {
+        mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
+          \buf, sbuff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
+          ++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
+        padList.addFirst(mpc);
+        mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
+          \mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), mgate: 1);
+        modList.addFirst(mod);
       });
+    });
 
-      // noteOff(id)
-      this.addCommand(\noteOff, "i", { arg msg;
-        var ompc = padList.detect{arg v; v.id == msg[1]};
-        var omod = modList.detect{arg v; v.id == msg[1]};
-        if(ompc.notNil, {
-          ompc.theSynth.set(\gate, 0);
-          ompc.gate = 0;
-        });
-        if(omod.notNil, {
-          omod.theMod.set(\mgate, 0);
-          omod.mgate = 0;
-	});
+    // noteOff(id)
+    this.addCommand(\noteOff, "i", { arg msg;
+      var ompc = padList.detect{arg v; v.id == msg[1]};
+      var omod = modList.detect{arg v; v.id == msg[1]};
+      if(ompc.notNil, {
+        ompc.theSynth.set(\gate, 0);
+        ompc.gate = 0;
       });
-
-		// noteOffAll()
-		this.addCommand(\noteOffAll, "", { arg msg;
-			padGroup.set(\gate, 0);
-			padList.do({ arg v; v.gate = 0; });
-			modGroup.set(\mgate, 0);
-			modList.do({ arg v; v.mgate = 0; });
-		});
+      if(omod.notNil, {
+        omod.theMod.set(\mgate, 0);
+        omod.mgate = 0;
+      });
+    });
+      
+    // noteOffAll()
+    this.addCommand(\noteOffAll, "", { arg msg;
+      padGroup.set(\gate, 0);
+      padList.do({ arg v; v.gate = 0; });
+      modGroup.set(\mgate, 0);
+      modList.do({ arg v; v.mgate = 0; });
+    });
 		
-		// pitchBend(ratio)
-		this.addCommand(\pitchBend, "f", { arg msg;
-			pitchBendRatio = msg[1];
-			padGroup.set(\pitchBendRatio, pitchBendRatio);
-		});
+    // pitchBend(ratio)
+    this.addCommand(\pitchBend, "f", { arg msg;
+      pitchBendRatio = msg[1];
+      padGroup.set(\pitchBendRatio, pitchBendRatio);
+    });
 		
-		// bpm(value)
-		this.addCommand(\bpm, "f", { arg msg;
-			bpm = msg[1];
-			padGroup.set(\bpm, bpm);
-			modGroup.set(\mbpm, bpm);
-			recGroup.set(\rbpm, bpm);
-		});
+    // bpm(value)
+    this.addCommand(\bpm, "f", { arg msg;
+      bpm = msg[1];
+      padGroup.set(\bpm, bpm);
+      modGroup.set(\mbpm, bpm);
+      recGroup.set(\rbpm, bpm);
+    });
 		
-		// step(value)
-		this.addCommand(\step, "f", { arg msg;
-			step = msg[1];
-			padGroup.set(\step, step);
-			recGroup.set(\rstep, step);
-		});
+    // step(value)
+    this.addCommand(\step, "f", { arg msg;
+      step = msg[1];
+      padGroup.set(\step, step);
+      recGroup.set(\rstep, step);
+    });
 		
-		// run(id)
-		this.addCommand(\run, "i", { arg msg;
-		var id = msg[1];
-		"sampling".postln;
-    recorder = Synth.new(\srecorder, [
+    // run(id)
+    this.addCommand(\run, "i", { arg msg;
+      var id = msg[1];
+      "sampling".postln;
+      recorder = Synth.new(\srecorder, [
         \rbuf, sbuff.bufnum,
         \rstep, step,
         \rbpm, bpm,
         \rpos, id,
         \run, 1
       ] ++ recparams.getPairs, target: rec);
-		});
+    });
 		
-		// runOff()
-		this.addCommand(\runOff, "", {
-		  "stop sampling".postln;
+    // runOff()
+    this.addCommand(\runOff, "", {
+      "stop sampling".postln;
       recorder.set(\run, 0);
-		});
+    });
 		
-		// readsamp(id, path)
-		this.addCommand(\readsamp, "is", { arg msg;
-			var id = msg[1], path = msg[2];
-			"read".postln;
-			diskread.value(id, path, step, bpm);
-		});
+    // readsamp(id, path)
+    this.addCommand(\readsamp, "is", { arg msg;
+      var id = msg[1], path = msg[2];
+      "read".postln;
+      diskread.value(id, path, step, bpm);
+    });
 
-		// writesamp(value)
-		this.addCommand(\writesamp, "i", { arg msg;
-			var numsamp = msg[1];
-			"write".postln;
-			diskwrite.value(numsamp, "/home/we/dust/code/MPCgrain/data/", sbuff);
-		});
-
-		// grainatt(value)
-		this.addCommand(\grainatt, "f", { arg msg;
-			watt = msg[1];
-			grainwindow.value(watt,wrel);
-		});
+    // writesamp(value)
+    this.addCommand(\writesamp, "i", { arg msg;
+      var numsamp = msg[1];
+      "write".postln;
+      diskwrite.value(numsamp, "/home/we/dust/code/MPCgrain/data/", sbuff);
+    });
+  
+    // grainatt(value)
+      this.addCommand(\grainatt, "f", { arg msg;
+        watt = msg[1];
+        grainwindow.value(watt,wrel);
+    });
 		
-		// grainrel(value)
-		this.addCommand(\grainrel, "f", { arg msg;
-			wrel = msg[1];
-			grainwindow.value(watt,wrel);
-		});
+    // grainrel(value)
+    this.addCommand(\grainrel, "f", { arg msg;
+      wrel = msg[1];
+      grainwindow.value(watt,wrel);
+    });
 
+  }
 
-	}
-
-	free {
-		padGroup.free;
-		modGroup.free;
-		recGroup.free;
-		sbuff.close;
+  free {
+    padGroup.free;
+    modGroup.free;
+    recGroup.free;
+    sbuff.close;
     sbuff.free;
-	}
+  }
+
 }
