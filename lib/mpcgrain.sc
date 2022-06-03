@@ -28,8 +28,8 @@ Engine_mpcgrain : CroneEngine {
   var bpm=120;
   var step=1;
   var pitchBendRatio=0;
-  var watt=0.125;
-  var wrel=0.5;
+  var watt= -3;
+  var wrel=3;
 	
   *new { arg context, doneCallback;
 	^super.new(context, doneCallback);
@@ -40,11 +40,11 @@ Engine_mpcgrain : CroneEngine {
     sbuff = Buffer.alloc(context.server, context.server.sampleRate * 64, 1);
     
     grainwindow = {
-      arg watt=0.125, wrel=0.5;
+      arg watt=watt, wrel=wrel;
       winenv = Env([0, 1, 0], [1, 1], [watt, wrel]);
       wbuff = Buffer.sendCollection(context.server, winenv.discretize, 1);
     };
-    grainwindow.value(0.125,0.5);
+    grainwindow.value(-3,3);
 	  
     diskread = {
       arg pos = 0, path = "/home/we/dust/audio/tape/0011.wav", step=step, bpm=bpm;
