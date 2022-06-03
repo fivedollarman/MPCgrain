@@ -124,7 +124,7 @@ Engine_mpcgrain : CroneEngine {
         (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
         buf,
         transp.midiratio + pitchmod + pitchBendRatio,
-        grainpos+(posmod/8),
+        Clip.ar(grainpos+(posmod/8),0,1),
         2,
         pan+panmod,
         envbuf,
