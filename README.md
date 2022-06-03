@@ -47,7 +47,7 @@ enc 3 -> change value <br>
 <i>The granular sampler paramaters</i>
 <ul>
   <li>step: slice duration in quarter notes</li>
-  <li>amp: amplitude</li>
+  <li>amp: amplitude, above 1 for distortion</li>
   <li>att: evelope attack</li>
   <li>rel: envelope release</li>
   <li>rnode: envelope release point, 1 for normal sustain</li>
