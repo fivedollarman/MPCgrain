@@ -84,74 +84,74 @@ Engine_mpcgrain : CroneEngine {
     }).add;
     
     SynthDef(\lfosmod, {
-    	arg mpos=0, mbpm=bpm, mgate=0, mvel=0, lfoatt=0, lforel=1, lfornode=1, lfof=1, lfoph=0, noiseatt=0, noiserel=1, noisernode=1, noisecut=127,
-	      masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, 
-	      pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
-    	var lfoenv, noiseenv, siglfo, signoise, envlfo, envnoise;
+      arg mpos=0, mbpm=bpm, mgate=0, mvel=0, lfoatt=0, lforel=1, lfornode=1, lfof=1, lfoph=0, noiseatt=0, noiserel=1, noisernode=1, noisecut=127,
+        masterm=0, pitchlfo=0, durlfo=0, trigflfo=0, poslfo=0, filtlfo=0, panlfo=0, delllfo=0, delrlfo=0, 
+        pitchnoise=0, durnoise=0, trigfnoise=0, posnoise=0, filtnoise=0, pannoise=0, dellnoise=0, delrnoise=0;
+      var lfoenv, noiseenv, siglfo, signoise, envlfo, envnoise;
       envlfo = Env.new([0,(mvel/127),0],[lfoatt,lforel], releaseNode: lfornode);
       envnoise = Env.new([0,(mvel/127),0],[noiseatt,noiserel], releaseNode: noisernode);
-    	lfoenv = EnvGen.kr(envlfo, mgate, doneAction: Done.freeSelf);
-    	noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
-    	siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
-    	signoise = noiseenv * (1 - (TwoPole.ar(WhiteNoise.ar(1), noisecut.midicps, mul: 0.5, add: 0.5)));
-    	Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
-    	Out.kr(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
-    	Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
-    	Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
-     	Out.ar(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
-    	Out.kr(~panmod.index + mpos, ((siglfo * panlfo) + (signoise * pannoise)) * masterm);
-    	Out.ar(~delayleftmod.index + mpos, ((siglfo * delllfo) + (signoise * dellnoise)) * masterm);
-    	Out.ar(~delayrightmod.index + mpos, ((siglfo * delrlfo) + (signoise * delrnoise)) * masterm);
-   }).add;
+      lfoenv = EnvGen.kr(envlfo, mgate, doneAction: Done.freeSelf);
+      noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
+      siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
+      signoise = noiseenv * (1 - (TwoPole.ar(WhiteNoise.ar(1), noisecut.midicps, mul: 0.5, add: 0.5)));
+      Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
+      Out.kr(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
+      Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
+      Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
+      Out.ar(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
+      Out.kr(~panmod.index + mpos, ((siglfo * panlfo) + (signoise * pannoise)) * masterm);
+      Out.ar(~delayleftmod.index + mpos, ((siglfo * delllfo) + (signoise * dellnoise)) * masterm);
+      Out.ar(~delayrightmod.index + mpos, ((siglfo * delrlfo) + (signoise * delrnoise)) * masterm);
+    }).add;
    
-   SynthDef(\grainsampler, {
-     arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
-       rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
-       filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
-     var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
-     tfmod = In.ar(~trigfreqmod.index + pos);
-     durmod = In.kr(~durationmod.index + pos);
-     pitchmod = In.ar(~pitchmod.index + pos);
-     posmod = In.ar(~positionmod.index + pos);
-     panmod = In.kr(~panmod.index + pos);
-     cutmod = In.ar(~filtcutmod.index + pos);
-     delrmod = In.ar(~delayrightmod.index + pos);
-     dellmod = In.ar(~delayleftmod.index + pos);
-     trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]);
-     grainpos = Phasor.ar(0, rate*(step/8) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/64, ((60/bpm)*step*pos)/64);
-     sig = GrainBuf.ar(2,
-       trigger,
-       (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
-       buf,
-       transp.midiratio + pitchmod + pitchBendRatio,
-       grainpos+(grainpos*posmod),
-       2,
-       pan+panmod,
-       envbuf,
-       maxGrains: 32 
-     );
-     sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq);
-     sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
-     env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
-     sig = ((sig+Mix.new(SoundIn.ar(0))) * EnvGen.kr(env, gate, doneAction: Done.freeSelf));
-     Out.ar(0, sig);
-   }).add;
+    SynthDef(\grainsampler, {
+      arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
+        rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
+        filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
+      var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
+      tfmod = In.ar(~trigfreqmod.index + pos);
+      durmod = In.kr(~durationmod.index + pos);
+      pitchmod = In.ar(~pitchmod.index + pos);
+      posmod = In.ar(~positionmod.index + pos);
+      panmod = In.kr(~panmod.index + pos);
+      cutmod = In.ar(~filtcutmod.index + pos);
+      delrmod = In.ar(~delayrightmod.index + pos);
+      dellmod = In.ar(~delayleftmod.index + pos);
+      trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]);
+      grainpos = Phasor.ar(0, rate*(step/8) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/64, ((60/bpm)*step*pos)/64);
+      sig = GrainBuf.ar(2,
+        trigger,
+        (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
+        buf,
+        transp.midiratio + pitchmod + pitchBendRatio,
+        grainpos+(grainpos*posmod),
+        2,
+        pan+panmod,
+        envbuf,
+        maxGrains: 32 
+      );
+      sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq);
+      sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
+      env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
+      sig = ((sig+Mix.new(SoundIn.ar(0))) * EnvGen.kr(env, gate, doneAction: Done.freeSelf));
+      Out.ar(0, sig);
+    }).add;
 
-   // Commands
+    // Commands
 		
-   recparams = Dictionary.newFrom([
-     \rpos, 1,
-     \rlvl, 1, 
-     \plvl, 0, 
-     \loop, 1;
-   ]);
+    recparams = Dictionary.newFrom([
+      \rpos, 1,
+      \rlvl, 1, 
+      \plvl, 0, 
+      \loop, 1;
+    ]);
 
-   recparams.keysDo({ arg key;
-     this.addCommand(key, "f", { arg msg;
-       recparams[key] = msg[1];
-       recGroup.set(key, msg[1]);
-     });
-   });
+    recparams.keysDo({ arg key;
+      this.addCommand(key, "f", { arg msg;
+        recparams[key] = msg[1];
+        recGroup.set(key, msg[1]);
+      });
+    });
 		
 		padparams = Dictionary.newFrom([
 			\amp, 1,
