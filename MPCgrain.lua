@@ -49,7 +49,7 @@ all_params[1] = {"bpm", "midi_ch", "in_device", "out_device", "bend_rng", "note_
 all_params[2] = {"sel", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop"}
 all_params[4] = {"step", "amp", "att", "rel", "rnode", "grainatt", "grainrel", "trgsel", "trgfrq", "rate", "dur", "transp", "samplerate", "bits", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
-all_params[5] = {"lfoatt", "lforel", "lfornode", "lfof", "lfoph", "noiseatt", "noiserel", "noisernode", "noisecut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "delllfo", "delrlfo", "panlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "dellnoise", "delrnoise", "pannoise"}
+all_params[5] = {"lfoatt", "lforel", "lfornode", "lfof", "lfoph", "noiseatt", "noiserel", "noisernode", "noisecut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "delllfo", "delrlfo", "panlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "dellnoise", "delrnoise", "pannoise", "masterm"}
 all_params[6] = {"readpos", "numfile"}
 
 -- MIDI input
@@ -270,34 +270,30 @@ function redraw()
   screen.text(testo)
   
   -- note variation
+  
+  screen.level(2)
+  screen.rect(1,3,8,61)
+  screen.stroke()
   if grp_params[id_grp+1] == "mods" then
     screen.level(12) 
   else
     screen.level(5)
   end
-  screen.rect(1,24+(34-(params:get("MPCgrain_masterm")*34)),4,2)
+  screen.rect(1,3+(53-(params:get("MPCgrain_masterm")*53)),7,3)
   screen.fill()
-  screen.rect(1,27+(34-(params:get("MPCgrain_masterm")*34)),4,2)
+  screen.rect(1,7+(53-(params:get("MPCgrain_masterm")*53)),7,3)
   screen.fill()
   
   -- screen
-  screen.level(5)  
-  screen.move(11, 10)
-  screen.line(11, 1)
-  screen.level(10) 
-  screen.line(84, 1)
-  screen.level(5) 
-  screen.line(84, 10)
-  screen.stroke()
   
   screen.level(12)
-  screen.rect (14, 4, 66, 24)
+  screen.rect (12, 2, 70, 27)
   screen.fill()
   
   screen.level(1)
-  screen.move(20, 12)
-  screen.text("=== ".. grp_params[id_grp+1] .." ===")
-  screen.move(20, 22)
+  screen.move(16, 12)
+  screen.text("==== ".. grp_params[id_grp+1] .." ====")
+  screen.move(16, 22)
   screen.text(all_params[id_grp+1][id_prm+1] .. ": " .. params:get("MPCgrain_" .. all_params[id_grp+1][id_prm+1]))
   
   -- pads
