@@ -153,97 +153,97 @@ Engine_mpcgrain : CroneEngine {
       });
     });
 		
-		padparams = Dictionary.newFrom([
-			\amp, 1,
-			\att, 0.1, 
-			\rel, 1, 
-			\rnode, 1,
-    	\rate, 1, 
-    	\dur, 0.5, 
-    	\transp, 0, 
-    	\pan, 0, 
-    	\trgsel, 0, 
-    	\trgfrq, 8,
-      \filtcut, 127, 
-      \rq, 1, 
-      \delr, 0.0225, 
-      \dell, 0.0127, 
-      \drywet, 0,
-      \envbuf, wbuff;
-		]);
+    padparams = Dictionary.newFrom([
+       \amp, 1,
+       \att, 0.1, 
+       \rel, 1, 
+       \rnode, 1,
+       \rate, 1, 
+       \dur, 0.5, 
+       \transp, 0, 
+       \pan, 0, 
+       \trgsel, 0, 
+       \trgfrq, 8,
+       \filtcut, 127, 
+       \rq, 1, 
+       \delr, 0.0225, 
+       \dell, 0.0127, 
+       \drywet, 0,
+       \envbuf, wbuff;
+    ]);
 		
-		padparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				padparams[key] = msg[1];
-				padGroup.set(key, msg[1]);
-			});
-		});
+    padparams.keysDo({ arg key;
+      this.addCommand(key, "f", { arg msg;
+        padparams[key] = msg[1];
+        padGroup.set(key, msg[1]);
+      });
+    });
 		
-		modparams = Dictionary.newFrom([
-			\lfoatt, 0, 
-			\lforel, 1, 
-			\lfornode, 1, 
-			\noiseatt, 0, 
-			\noiserel, 1, 
-			\noisernode, 1, 
-			\lfof, 1, 
-			\lfoph, 0, 
-			\noisecut, 127,
-	    \pitchlfo, 0, 
-	    \durlfo, 0, 
-	    \trigflfo, 0, 
-	    \poslfo, 0, 
-	    \filtlfo, 0, 
-	    \panlfo, 0, 
-	    \delllfo, 0, 
-	    \delrlfo, 0,
-	    \pitchnoise, 0, 
-	    \durnoise, 0, 
-	    \trigfnoise, 0, 
-	    \posnoise, 0, 
-	    \filtnoise, 0, 
-	    \pannoise, 0, 
-	    \dellnoise, 0, 
-	    \delrnoise, 0,
-	    \masterm, 0;
-		]);
+    modparams = Dictionary.newFrom([
+      \lfoatt, 0, 
+      \lforel, 1, 
+      \lfornode, 1, 
+      \noiseatt, 0, 
+      \noiserel, 1, 
+      \noisernode, 1, 
+      \lfof, 1, 
+      \lfoph, 0, 
+      \noisecut, 127,
+      \pitchlfo, 0, 
+      \durlfo, 0, 
+      \trigflfo, 0, 
+      \poslfo, 0, 
+      \filtlfo, 0, 
+      \panlfo, 0, 
+      \delllfo, 0, 
+      \delrlfo, 0,
+      \pitchnoise, 0, 
+      \durnoise, 0, 
+      \trigfnoise, 0, 
+      \posnoise, 0, 
+      \filtnoise, 0, 
+      \pannoise, 0, 
+      \dellnoise, 0, 
+      \delrnoise, 0,
+      \masterm, 0;
+    ]);
 		
-		modparams.keysDo({ arg key;
-			this.addCommand(key, "f", { arg msg;
-				modparams[key] = msg[1];
-				modGroup.set(key, msg[1]);
-			});
-		});
+    modparams.keysDo({ arg key;
+      this.addCommand(key, "f", { arg msg;
+        modparams[key] = msg[1];
+        modGroup.set(key, msg[1]);
+      });
+    });
 
-		// noteOn(id, note, vel)
-		this.addCommand(\noteOn, "iff", { arg msg;
-			var id = msg[1], note = msg[2], vel = msg[3];
-			var mpc, mod;
-			("playing " ++ id).postln;
-			context.server.makeBundle(nil, {
-		   	mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
-		  		\buf, sbuff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
-		  		++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
-		  	padList.addFirst(mpc);
-		  	mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
-		  		\mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), mgate: 1);
-		  	modList.addFirst(mod);
-		  });
-		});
+    // noteOn(id, note, vel)
+      this.addCommand(\noteOn, "iff", { arg msg;
+        var id = msg[1], note = msg[2], vel = msg[3];
+        var mpc, mod;
+        ("playing " ++ id).postln;
+        context.server.makeBundle(nil, {
+          mpc = (id: id, theSynth: Synth.new(defName: \grainsampler, args: [
+            \buf, sbuff, \pos, id, \gate, 1, \vel, vel, \bpm, bpm, \step, step]
+            ++ padparams.getPairs, target: padGroup).onFree({ padList.remove(mpc); }), gate: 1);
+          padList.addFirst(mpc);
+          mod = (id: id, theMod: Synth.new(defName: \lfosmod, args: [
+            \mpos, id, \mgate, 1, \mvel, vel, \rbpm, bpm] ++ modparams.getPairs, target: modGroup).onFree({ modList.remove(mod); }), mgate: 1);
+          modList.addFirst(mod);
+        });
+      });
 
-		// noteOff(id)
-		this.addCommand(\noteOff, "i", { arg msg;
-			var ompc = padList.detect{arg v; v.id == msg[1]};
-			var omod = modList.detect{arg v; v.id == msg[1]};
-			if(ompc.notNil, {
-				ompc.theSynth.set(\gate, 0);
-				ompc.gate = 0;
-			});
-			if(omod.notNil, {
-				omod.theMod.set(\mgate, 0);
-				omod.mgate = 0;
-			});
-		});
+      // noteOff(id)
+      this.addCommand(\noteOff, "i", { arg msg;
+        var ompc = padList.detect{arg v; v.id == msg[1]};
+        var omod = modList.detect{arg v; v.id == msg[1]};
+        if(ompc.notNil, {
+          ompc.theSynth.set(\gate, 0);
+          ompc.gate = 0;
+        });
+        if(omod.notNil, {
+          omod.theMod.set(\mgate, 0);
+          omod.mgate = 0;
+	});
+      });
 
 		// noteOffAll()
 		this.addCommand(\noteOffAll, "", { arg msg;
