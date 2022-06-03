@@ -4,7 +4,7 @@ local Formatters = require 'formatters'
 -- ranges
 local specs = {
   ["step"] = controlspec.new(1, 16, "lin", 1, 1, ""),
-  ["amp"] = controlspec.new(0, 8, 'lin', 0, 1, ""),
+  ["amp"] = controlspec.new(0, 12, 'lin', 0, 1, ""),
   ["att"] = controlspec.new(0, 4, "lin", 0.05, 0, "s"),
   ["rel"] = controlspec.new(0, 8, "lin", 0.1, 1, "s"),
   ["grainatt"] = controlspec.new(-64, 64, "lin", 1, 0, ""),
