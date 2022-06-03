@@ -41,7 +41,7 @@ Engine_mpcgrain : CroneEngine {
     
     grainwindow = {
       arg watt=0.125, wrel=0.5;
-      winenv = Env([0, 1, 0], [watt, wrel], [8, -8]);
+      winenv = Env([0, 1, 0], [1, 1], [watt, wrel]);
       wbuff = Buffer.sendCollection(context.server, winenv.discretize, 1);
     };
     grainwindow.value(0.125,0.5);
@@ -130,7 +130,7 @@ Engine_mpcgrain : CroneEngine {
     		2,
 	    	pan+panmod,
 	    	envbuf,
-	    	maxGrains: 32
+	    	maxGrains: 128
 	    );
     	sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq);
     	sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
