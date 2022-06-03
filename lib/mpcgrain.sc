@@ -57,11 +57,11 @@ Engine_mpcgrain : CroneEngine {
       buf.write(path ++ "MPCgrain_" ++ numsamp ++ ".wav", headerFormat: "wav", sampleFormat: "int24");
     };
     
-    ~pitchmod = Bus.audio(context.server,8);
+    ~pitchmod = Bus.control(context.server,8);
     ~durationmod = Bus.control(context.server,8);
     ~trigfreqmod = Bus.audio(context.server,8);
     ~positionmod = Bus.audio(context.server,8);
-    ~filtcutmod = Bus.audio(context.server,8);
+    ~filtcutmod = Bus.control(context.server,8);
     ~panmod = Bus.control(context.server,8);
     ~delayleftmod = Bus.audio(context.server,8);
     ~delayrightmod = Bus.audio(context.server,8);
@@ -94,11 +94,11 @@ Engine_mpcgrain : CroneEngine {
       noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
       siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
       signoise = noiseenv * (1 - (TwoPole.ar(WhiteNoise.ar(1), noisecut.midicps, mul: 0.5, add: 0.5)));
-      Out.ar(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
+      Out.kr(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
       Out.kr(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
       Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
       Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
-      Out.ar(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
+      Out.kr(~filtcutmod.index  + mpos, ((siglfo * filtlfo) + (signoise * filtnoise)) * masterm);
       Out.kr(~panmod.index + mpos, ((siglfo * panlfo) + (signoise * pannoise)) * masterm);
       Out.ar(~delayleftmod.index + mpos, ((siglfo * delllfo) + (signoise * dellnoise)) * masterm);
       Out.ar(~delayrightmod.index + mpos, ((siglfo * delrlfo) + (signoise * delrnoise)) * masterm);
@@ -111,10 +111,10 @@ Engine_mpcgrain : CroneEngine {
       var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
       tfmod = In.ar(~trigfreqmod.index + pos);
       durmod = In.kr(~durationmod.index + pos);
-      pitchmod = In.ar(~pitchmod.index + pos);
+      pitchmod = In.kr(~pitchmod.index + pos);
       posmod = In.ar(~positionmod.index + pos);
       panmod = In.kr(~panmod.index + pos);
-      cutmod = In.ar(~filtcutmod.index + pos);
+      cutmod = In.kr(~filtcutmod.index + pos);
       delrmod = In.ar(~delayrightmod.index + pos);
       dellmod = In.ar(~delayleftmod.index + pos);
       trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]);
