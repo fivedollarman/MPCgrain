@@ -49,7 +49,7 @@ Engine_mpcgrain : CroneEngine {
     diskread = {
       arg pos = 0, path = "/home/we/dust/audio/tape/0011.wav", step=step, bpm=bpm;
       var bufpos = context.server.sampleRate*(60/bpm)*step*pos;
-      sbuff.readChannel(path, 0, -1, bufpos, channels:[0]);
+      sbuff.readChannel(path, fileStartFrame: 0, numFrames: -1, bufStartFrame: bufpos, leaveOpen: false, channels: 0);
     };
        
     diskwrite = {
