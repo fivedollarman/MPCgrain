@@ -37,7 +37,7 @@ Engine_mpcgrain : CroneEngine {
 
   alloc {
 	
-    sbuff = Buffer.alloc(context.server, context.server.sampleRate * 64, 1);
+    sbuff = Buffer.alloc(context.server, context.server.sampleRate * 128, 1);
     
     grainwindow = {
       arg watt=watt, wrel=wrel;
