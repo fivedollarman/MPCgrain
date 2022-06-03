@@ -106,7 +106,7 @@ Engine_mpcgrain : CroneEngine {
    
     SynthDef(\grainsampler, {
       arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
-        rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8,
+        rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8, samplerate=48000, bits=24,
         filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
       var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
       tfmod = In.ar(~trigfreqmod.index + pos);
@@ -130,6 +130,7 @@ Engine_mpcgrain : CroneEngine {
         envbuf,
         maxGrains: 32 
       );
+      sig = Decimator.ar(sig, samplerate*1000, bits);
       sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36),0,127).midicps, rq).tanh;
       sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
       env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
@@ -164,6 +165,8 @@ Engine_mpcgrain : CroneEngine {
        \pan, 0, 
        \trgsel, 0, 
        \trgfrq, 8,
+       \samplerate, 48000,
+       \bits, 24,
        \filtcut, 127, 
        \rq, 1, 
        \delr, 0.0225, 
