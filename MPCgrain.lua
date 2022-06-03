@@ -48,7 +48,7 @@ local grp_params = {"midi", "trcks", "sampl", "prog", "mods", "file"}
 all_params[1] = {"bpm", "midi_ch", "in_device", "out_device", "bend_rng", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
 all_params[2] = {"sel", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop"}
-all_params[4] = {"step", "amp", "att", "rel", "rnode", "grainatt", "grainrel", "trgsel", "trgfrq", "rate", "dur", "transp", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
+all_params[4] = {"step", "amp", "att", "rel", "rnode", "grainatt", "grainrel", "trgsel", "trgfrq", "rate", "dur", "transp", "samplerate", "bits", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
 all_params[5] = {"lfoatt", "lforel", "lfornode", "lfof", "lfoph", "noiseatt", "noiserel", "noisernode", "noisecut", "pitchlfo", "durlfo", "trigflfo", "poslfo", "filtlfo", "delllfo", "delrlfo", "panlfo", "pitchnoise", "durnoise", "trigfnoise", "posnoise", "filtnoise", "dellnoise", "delrnoise", "pannoise"}
 all_params[6] = {"readpos", "numfile"}
 
