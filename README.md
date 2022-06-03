@@ -58,6 +58,8 @@ enc 3 -> change value <br>
   <li>rate: buffer read rate</li>
   <li>dur: grains duration</li>
   <li>transp: single grain note transpose</li>
+  <li>samplerate: samplerate in k</li>
+  <li>bits: bitrate</li>
   <li>filtcut: filter cutoff</li>
   <li>rq: filter resonance</li>
   <li>delr: delay of right channel in ms</li>
