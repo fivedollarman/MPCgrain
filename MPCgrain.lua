@@ -448,7 +448,7 @@ function key(n,z)
     runbtn = 0
     params:set("MPCgrain_run", runbtn)
   elseif n==2 and z==1 and grp_params[id_grp+1] == "prog" then
-    for i = 1,#all_params[4]-1 do
+    for i = 3,#all_params[4]-1 do
       local p_name = all_params[4][i]
       local minmax = params:get_range("MPCgrain_"..p_name)
       params:set("MPCgrain_"..p_name, math.random(minmax[1]*100,minmax[2]*100)/100)
