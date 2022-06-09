@@ -134,7 +134,7 @@ Engine_mpcgrain : CroneEngine {
       sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36), 8, 127).midicps, rq).tanh;
       sig = XFade2.ar(sig, DelayL.ar(sig, [(delr/1000)+((delr/1000)*delrmod), (dell/1000)+((dell/1000)*dellmod)]), drywet);
       env = Env.new([0,amp*(vel/127),0],[att,rel], releaseNode: rnode);
-      sig = (sig * EnvGen.ar(env, gate, doneAction: Done.freeSelf));
+      sig = (sig * EnvGen.kr(env, gate, doneAction: Done.freeSelf));
       Out.ar(0, sig);
     }).add;
 
