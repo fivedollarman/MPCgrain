@@ -126,7 +126,7 @@ Engine_mpcgrain : CroneEngine {
         transp.midiratio + (pitchmod*36).midiratio + pitchBendRatio,
         Clip.ar(grainpos+(posmod/8), 0, 1),
         2,
-        pan+panmod,
+        Clip.kr(pan+panmod, -1, 1),
         envbuf,
         maxGrains: 32 
       );
