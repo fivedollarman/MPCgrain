@@ -128,7 +128,7 @@ Engine_mpcgrain : CroneEngine {
         2,
         Clip.kr(pan+panmod, -1, 1),
         envbuf,
-        maxGrains: 64
+        maxGrains: 16
       );
       sig = Decimator.ar(sig, samplerate*1000, bits);
       sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36), 8, 127).midicps, rq).tanh;
