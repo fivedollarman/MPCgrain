@@ -15,8 +15,8 @@ local specs = {
   ["rate"] = controlspec.new(0, 2, "lin", 0, 1, ""),
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
   ["transp"] = controlspec.new(-36, 36, "lin", 0.5, 0, ""),
-  ["samplerate"] = controlspec.new(0, 48, "lin", 0.5, 48, "k"),
-  ["bits"] = controlspec.new(1, 24, "lin", 0.2, 24, ""),
+  ["samplerate"] = controlspec.new(1, 48, "lin", 0.5, 48, "k"),
+  ["bits"] = controlspec.new(2, 24, "lin", 0.2, 24, ""),
   ["filtcut"] = controlspec.new(8, 127, "lin", 1, 127, ""),
   ["rq"] = controlspec.new(0, 1, "lin", 0, 0, ""),
   ["delr"] = controlspec.new(0, 127, "lin", 1, 0, "ms"),
@@ -70,7 +70,7 @@ local rparam_names = {"rpos", "rlvl", "plvl", "loop"}
 -- initialize parameters:
 function MPCgrain.add_params()
   
-  params:add_group("MPCgrainprog", #param_names+1)
+  params:add_group("MPCgrainprogram", #param_names+1)
   params:add_separator("prog")
   for i = 1,#param_names do
     local p_name = param_names[i]
