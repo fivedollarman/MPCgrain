@@ -3,7 +3,7 @@ local Formatters = require 'formatters'
 
 -- ranges
 local specs = {
-  ["step"] = controlspec.new(1, 16, "lin", 1, 1, ""),
+  ["step"] = controlspec.new(1, 16, "lin", 1, 4, ""),
   ["amp"] = controlspec.new(0, 12, 'lin', 0, 1, ""),
   ["att"] = controlspec.new(0, 4, "lin", 0.05, 0, "s"),
   ["rel"] = controlspec.new(0, 8, "lin", 0.1, 1, "s"),
@@ -12,9 +12,9 @@ local specs = {
   ["rnode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
   ["trgsel"] = controlspec.new(0, 1, "lin", 1, 0, ""),
   ["trgfrq"] = controlspec.new(1, 128, "lin", 1, 16, ""),
-  ["rate"] = controlspec.new(0, 2, "lin", 0, 1, ""),
+  ["rate"] = controlspec.new(0, 4, "lin", 0, 1, ""),
   ["dur"] = controlspec.new(0, 2, "lin", 0.02, 1, ""),
-  ["transp"] = controlspec.new(-36, 36, "lin", 0.5, 0, ""),
+  ["transp"] = controlspec.new(-24, 24, "lin", 0.5, 0, ""),
   ["samplerate"] = controlspec.new(8, 48, "lin", 0.5, 48, "k"),
   ["bits"] = controlspec.new(4, 24, "lin", 0.2, 24, ""),
   ["filtcut"] = controlspec.new(8, 127, "lin", 1, 127, ""),
@@ -37,22 +37,22 @@ local mspecs = {
   ["noiserel"] = controlspec.new(0, 8, "lin", 0.1, 2, "s"),
   ["noisernode"] = controlspec.new(0, 2, "lin", 1, 1, ""),
   ["noisecut"] = controlspec.new(0.5, 127, "lin", 1, 8, ""),
-  ["pitchlfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["durlfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["trigflfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["poslfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["filtlfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["panlfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["delllfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["delrlfo"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["pitchnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["durnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["trigfnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["posnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["filtnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["pannoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["dellnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
-  ["delrnoise"] = controlspec.new(-1, 1, "lin", 0, 0, ""),
+  ["pitchlfo"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["durlfo"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["trigflfo"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["poslfo"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["filtlfo"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["panlfo"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["delllfo"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["delrlfo"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["pitchnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["durnoise"] = controlspec.new(-0.5, 0.5, "lin", 0, 0.01, ""),
+  ["trigfnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["posnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["filtnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["pannoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["dellnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
+  ["delrnoise"] = controlspec.new(-0.5, 0.5, "lin", 0.01, 0, ""),
   ["masterm"] = controlspec.new(0, 1, "lin", 0, 0, "")
 }
 
@@ -70,7 +70,7 @@ local rparam_names = {"rpos", "rlvl", "plvl", "loop"}
 -- initialize parameters:
 function MPCgrain.add_params()
   
-  params:add_group("MPCgrainprogram", #param_names+1)
+  params:add_group("MPCgrain", #param_names+1)
   params:add_separator("prog")
   for i = 1,#param_names do
     local p_name = param_names[i]
