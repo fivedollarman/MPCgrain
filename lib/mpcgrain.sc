@@ -12,7 +12,7 @@ Engine_mpcgrain : CroneEngine {
   var recGroup;
   var recList;
   var recparams;
-  var padparams;8
+  var padparams;
   var modparams;
 	
   var sbuff;
@@ -129,7 +129,7 @@ Engine_mpcgrain : CroneEngine {
         2,
         pan+panmod,
         envbuf,
-        maxGrains: 8
+        maxGrains: 64
       );
       sig = Decimator.ar(sig, samplerate*1000, bits);
       sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36), 8, 127).midicps, rq).tanh;
