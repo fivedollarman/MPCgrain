@@ -12,13 +12,13 @@ Engine_mpcgrain : CroneEngine {
   var recGroup;
   var recList;
   var recparams;
-  var padparams;
+  var padparams;8
   var modparams;
 	
   var sbuff;
   var wbuff;
   var winenv;
-  var buffread;
+  var buffread;88
   var diskwrite;
   var diskread;
   var rec;
@@ -119,16 +119,17 @@ Engine_mpcgrain : CroneEngine {
       dellmod = In.ar(~delayleftmod.index + pos);
       trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]);
       grainpos = Phasor.ar(0, (rate*(((60/bpm)*step*pos)/128)) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/128, ((60/bpm)*step*pos)/128);
-      sig = GrainBuf.ar(2,
+      sig = GrainBuf.ar(
+        2,
         trigger,
         (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
         buf,
-        Clip.kr(transp.midiratio + (pitchmod*36).midiratio + pitchBendRatio, 0.125, 4),
-        Clip.ar(grainpos+(posmod/8), 0, 1),
+        transp.midiratio + (transp.midiratio*pitchmod) + pitchBendRatio,
+        grainpos+(posmod/8),
         2,
-        Clip.kr(pan+panmod, -1, 1),
+        pan+panmod,
         envbuf,
-        maxGrains: 16
+        maxGrains: 8
       );
       sig = Decimator.ar(sig, samplerate*1000, bits);
       sig = RLPF.ar(sig, Clip.kr(filtcut + (cutmod*36), 8, 127).midicps, rq).tanh;
