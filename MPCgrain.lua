@@ -223,7 +223,7 @@ function init()
     in_device.event = midi_event
   end}
   params:add{type = "option", id = "MPCgrain_midi_ch", name = "MIDI Channel", options = channels}
-  params:add{type = "number", id = "MPCgrain_bend_rng", name = "Pitch Bend Range", min = 1, max = 48, default = 2}
+  params:add{type = "number", id = "MPCgrain_bend_rng", name = "Pitch Bend Range", min = 1, max = 24, default = 12}
   
   for i=1, 8 do
     params:add{type = "number", id = "MPCgrain_note_" .. i, name = "MIDI note pad " .. i, min = 0, max = 127, default = 63+i, action = function(value)
