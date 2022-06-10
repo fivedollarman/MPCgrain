@@ -18,7 +18,7 @@ Engine_mpcgrain : CroneEngine {
   var sbuff;
   var wbuff;
   var winenv;
-  var buffread;88
+  var buffread;
   var diskwrite;
   var diskread;
   var rec;
