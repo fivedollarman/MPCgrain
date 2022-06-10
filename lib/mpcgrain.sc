@@ -117,15 +117,15 @@ Engine_mpcgrain : CroneEngine {
       cutmod = In.kr(~filtcutmod.index + pos);
       delrmod = In.ar(~delayrightmod.index + pos);
       dellmod = In.ar(~delayleftmod.index + pos);
-      trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod)), Dust.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod))]);
-      grainpos = Phasor.ar(0, (rate*(((60/bpm)*step*pos)/128)) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/128, ((60/bpm)*step*pos)/128);
+      trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod), Dust.ar((bpm/(1.875*trgfrq)) + (bpm/(1.875*trgfrq))*tfmod))]);
+      grainpos = Phasor.ar(0, (rate+(rate*posmod)*(((60/bpm)*step*pos)/128)) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/128, ((60/bpm)*step*pos)/128);
       sig = GrainBuf.ar(
         2,
         trigger,
         (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
         buf,
         transp.midiratio + (transp.midiratio*pitchmod) + pitchBendRatio,
-        grainpos+(posmod/8),
+        grainpos,
         2,
         pan+panmod,
         envbuf,
