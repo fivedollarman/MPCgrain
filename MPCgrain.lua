@@ -104,9 +104,8 @@ function midi_act(msg)
     -- CC
     elseif msg.type == "cc" then
       -- Mod wheel
-      if msg.cc == 1 then
-        -- print("modw " .. msg.val)
-        if msg.ch == channel_param then
+      if msg.ch == channel_param then
+        if msg.cc == 1 then
           params:set("MPCgrain_masterm", msg.val / 127)
         end 
       else
