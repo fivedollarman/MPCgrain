@@ -45,7 +45,7 @@ local id_grp = 0
 local id_prm = 0
 local grp_params = {"midi", "trcks", "sampl", "prog", "mods", "file"}
 local all_params = {}
-all_params[1] = {"bpm", "midi_ch", "in_device", "out_device", "bend_rng", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
+all_params[1] = {"midi_ch", "in_device", "out_device", "bend_rng", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
 all_params[2] = {"sel", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop"}
 all_params[4] = {"step", "amp", "att", "rel", "rnode", "grainatt", "grainrel", "trgsel", "trgfrq", "rate", "dur", "transp", "samplerate", "bits", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
@@ -205,10 +205,8 @@ function init()
   end
   table.insert(channels, "MPE")
   
-  params:add_group("MPCgrainMIDI", 16)
+  params:add_group("MPCgrainMIDI", 14)
   params:add_separator("tracks")
-  params:add_control("MPCgrain_bpm", "bpm", controlspec.new(0, 240, "lin", 1, 120, ""))
-  params:set_action("MPCgrain_bpm", function(x) params:set("clock_tempo",x) end)
   params:set_action("clock_tempo", function(x) engine.bpm(x) end)
   out_device = midi.connect(2)
   params:add{type = "number", id = "MPCgrain_out_device", name = "MIDI out Device", min = 1, max = 4, default = 1, action = function(value)
