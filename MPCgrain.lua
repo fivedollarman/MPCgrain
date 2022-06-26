@@ -45,7 +45,7 @@ local id_grp = 0
 local id_prm = 0
 local grp_params = {"midi", "trcks", "sampl", "prog", "mods", "file"}
 local all_params = {}
-all_params[1] = {"midi_ch", "in_device", "out_device", "bend_rng", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
+all_params[1] = {"midi_ch", "in_device", "out_device", "bend", "note_1", "note_2", "note_3", "note_4", "note_5", "note_6", "note_7", "note_8"}
 all_params[2] = {"sel", "num", "den"}
 all_params[3] = {"rpos", "rlvl", "plvl", "loop"}
 all_params[4] = {"step", "amp", "att", "rel", "rnode", "grainatt", "grainrel", "trgsel", "trgfrq", "rate", "dur", "transp", "samplerate", "bits", "filtcut", "rq", "delr", "dell", "drywet", "pan"}
@@ -93,8 +93,8 @@ function midi_act(msg)
       
     -- Pitch bend
     elseif msg.type == "pitchbend" then
-      local bend_st = (util.round(msg.val / 2)) / 8192 * 2 -1 
-      local bend_range = params:get("MPCgrain_bend_rng")
+      local bend_st = (util.round(msg.val / 2)) / 8192 * 2 - 1 
+      local bend_range = params:get("MPCgrain_bend")
       if msg.ch == channel_param then
         engine.pitchBend(MusicUtil.interval_to_ratio(bend_st * bend_range))
       else
@@ -220,7 +220,7 @@ function init()
     in_device.event = midi_event
   end}
   params:add{type = "option", id = "MPCgrain_midi_ch", name = "MIDI Channel", options = channels}
-  params:add{type = "number", id = "MPCgrain_bend_rng", name = "Pitch Bend Range", min = 1, max = 24, default = 12}
+  params:add{type = "number", id = "MPCgrain_bend", name = "Pitch Bend Range", min = 1, max = 24, default = 12}
   
   for i=1, 8 do
     params:add{type = "number", id = "MPCgrain_note_" .. i, name = "MIDI note pad " .. i, min = 0, max = 127, default = 63+i, action = function(value)
