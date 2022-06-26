@@ -94,7 +94,7 @@ Engine_mpcgrain : CroneEngine {
       noiseenv = EnvGen.kr(envnoise, mgate, doneAction: Done.freeSelf);
       siglfo = lfoenv * (1 - (SinOsc.ar((mbpm/240)*lfof, lfoph, 0.5, 0.5)));
       signoise = noiseenv * (1 - (TwoPole.ar(WhiteNoise.ar(1), noisecut.midicps, mul: 0.5, add: 0.5)));
-      Out.kr(~pitchmod.index + mpos, (siglfo * pitchlfo) * masterm);
+      Out.kr(~pitchmod.index + mpos, ((siglfo * pitchlfo) + (signoise * pitchnoise)) * masterm);
       Out.kr(~durationmod.index  + mpos, ((siglfo * durlfo) + (signoise * durnoise)) * masterm);
       Out.ar(~trigfreqmod.index + mpos, ((siglfo * trigflfo) + (signoise * trigfnoise)) * masterm);
       Out.ar(~positionmod.index + mpos, ((siglfo * poslfo) + (signoise * posnoise)) * masterm);
@@ -106,7 +106,7 @@ Engine_mpcgrain : CroneEngine {
    
     SynthDef(\grainsampler, {
       arg buf=0, pos=0, bpm=bpm, step=step, gate=1, amp=1, vel=0, att=0.1, rel=1, rnode=1,
-        rate=1, dur=0.5, transp=0, pitchBendRatio=0, pan=0, trgsel=0, trgfrq=8, samplerate=48000, bits=24,
+        rate=1, dur=0.5, transp=0, pitchBend=1, pan=0, trgsel=0, trgfrq=8, samplerate=48000, bits=24,
         filtcut=127, rq=1, delr=0.0225, dell=0.0127, drywet=0, envbuf=wbuff;
       var sig, trigger, grainpos, env, tfmod, durmod, pitchmod, posmod, panmod, cutmod, delrmod, dellmod;
       tfmod = In.ar(~trigfreqmod.index + pos);
@@ -118,13 +118,13 @@ Engine_mpcgrain : CroneEngine {
       delrmod = In.ar(~delayrightmod.index + pos);
       dellmod = In.ar(~delayleftmod.index + pos);
       trigger = Select.ar(trgsel, [Impulse.ar((bpm/(1.875*trgfrq)) + ((bpm/(1.875*trgfrq))*tfmod), Dust.ar((bpm/(1.875*trgfrq)) + (bpm/(1.875*trgfrq))*tfmod))]);
-      grainpos = Phasor.ar(0, (rate+(rate*posmod)*(((60/bpm)*step*pos)/128)) / context.server.sampleRate, ((60/bpm)*step*(pos-1))/128, ((60/bpm)*step*pos)/128);
+      grainpos = Phasor.ar(0, (rate*(((60/bpm)*step*pos)/128)) / context.server.sampleRate, ((60/bpm)*step*(pos+posmod-1))/128, ((60/bpm)*step*pos+posmod)/128);
       sig = GrainBuf.ar(
         2,
         trigger,
         (((1.875*trgfrq*step)/bpm)*dur) + (((1.875*trgfrq*step)/bpm)*dur*durmod),
         buf,
-        (transp.midiratio + (transp.midiratio * pitchmod)) + pitchBendRatio,
+        Clip.kr((transp.midiratio + pitchmod) * pitchBend, 0.0625, 4),
         grainpos,
         2,
         pan+panmod,
@@ -163,6 +163,7 @@ Engine_mpcgrain : CroneEngine {
        \rate, 1, 
        \dur, 0.5, 
        \transp, 0, 
+       \pitchBend, 1,
        \pan, 0, 
        \trgsel, 0, 
        \trgfrq, 8,
@@ -255,12 +256,6 @@ Engine_mpcgrain : CroneEngine {
       padList.do({ arg v; v.gate = 0; });
       modGroup.set(\mgate, 0);
       modList.do({ arg v; v.mgate = 0; });
-    });
-		
-    // pitchBend(ratio)
-    this.addCommand(\pitchBend, "f", { arg msg;
-      pitchBendRatio = msg[1];
-      padGroup.set(\pitchBendRatio, pitchBendRatio);
     });
 		
     // bpm(value)
